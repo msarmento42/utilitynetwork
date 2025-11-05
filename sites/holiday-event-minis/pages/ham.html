@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ham Servings • Holiday & Event Minis</title>
+  <meta name="description" content="Ham size per person." />
+  <link rel="canonical" href="/pages/ham.html" />
+  <link rel="icon" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-083MSQKPFX');
+</script>
+  <!-- Google AdSense Auto ads -->
+<meta name="google-adsense-account" content="ca-pub-6175161566333696">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Holiday & Event Minis", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
+  
+</head>
+<body>
+  <div class="container">
+    <div id="network-bar" class="nav" style="display:none"></div>
+    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/turkey.html">Turkey Servings</a><a class="badge" href="/pages/ham.html">Ham Servings</a><a class="badge" href="/pages/gifts.html">Gift Budget Split</a><a class="badge" href="/pages/lights.html">String Lights</a></div>
+    
+<div class="card"><h1>Ham Servings</h1><p>Estimate ham size by guest count and cut.</p></div>
+<div class="card grid grid-2">
+  <div><label class="label">Guests</label><input class="input" id="h-people" type="number" value="8"/></div>
+  <div><label class="label">Cut</label><select class="input" id="h-cut"><option value="bone-in" selected>Bone-in</option><option value="boneless">Boneless</option></select></div>
+</div>
+<div class="card" id="h-result"></div>
+<div class="card small">Guideline only; adjust for sides and appetites.</div>
+<script>
+function ham(){const ppl=+h_people.value||8;const cut=h_cut.value;const per=cut==='boneless'?0.5:0.75;const total=Math.ceil(ppl*per*2)/2;h_result.innerHTML=`Recommended ham: <strong>${total}</strong> lb`;}
+['input','change'].forEach(evt=>document.addEventListener(evt,e=>{if(['h-people','h-cut'].includes(e.target.id))ham();}));ham();
+</script>
+    <div class="footer">© 2025 Holiday & Event Minis • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
+  </div>
+  <script src="/assets/js/main.js"></script>
+  
+<script>
+(async function(){
+  try{
+    const res = await fetch('/assets/network.json');
+    if(!res.ok) throw 0;
+    const links = await res.json();
+    const nav = document.getElementById('network-bar');
+    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
+    nav.style.display = 'flex';
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>

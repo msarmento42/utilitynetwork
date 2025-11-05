@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Food Quantity • Party Planner Pack</title>
+  <meta name="description" content="Food quantity per person." />
+  <link rel="canonical" href="/pages/food.html" />
+  <link rel="icon" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-083MSQKPFX');
+</script>
+  <!-- Google AdSense Auto ads -->
+<meta name="google-adsense-account" content="ca-pub-6175161566333696">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Party Planner Pack", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
+  
+</head>
+<body>
+  <div class="container">
+    <div id="network-bar" class="nav" style="display:none"></div>
+    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/drinks.html">Drinks</a><a class="badge" href="/pages/food.html">Food</a><a class="badge" href="/pages/pizza.html">Pizza</a><a class="badge" href="/pages/playlist.html">Playlist</a><a class="badge" href="/pages/seating.html">Seating</a></div>
+    
+<div class="card"><h1>Food Quantity Calculator</h1><p>Estimate mains, sides, and appetizers.</p></div>
+<div class="card grid grid-2">
+  <div><label class="label">Guests</label><input class="input" id="f-guests" type="number" value="20"/></div>
+  <div><label class="label">Service style</label><select class="input" id="f-style"><option value="appetizers">Appetizers & snacks</option><option value="buffet">Buffet</option><option value="seated">Seated dinner</option></select></div>
+</div>
+<div class="card" id="f-result"></div>
+<script>
+function calcFood(){const g=+f_guests.value||0,style=f_style.value;let mains=.3,sides=.5,apps=3;if(style==='buffet'){mains=.4;sides=.7;apps=4}if(style==='seated'){mains=.35;sides=.6;apps=3}f_result.innerHTML=`Mains: <strong>${Math.ceil(g*mains)} lb</strong> • Sides: <strong>${Math.ceil(g*sides)} lb</strong> • Appetizers: <strong>${Math.ceil(g*apps)}</strong>`;}
+['input','change'].forEach(evt=>document.addEventListener(evt,e=>{if(['f-guests','f-style'].includes(e.target.id))calcFood();}));calcFood();
+</script>
+    <div class="footer">© 2025 Party Planner Pack • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
+  </div>
+  <script src="/assets/js/main.js"></script>
+  
+<script>
+(async function(){
+  try{
+    const res = await fetch('/assets/network.json');
+    if(!res.ok) throw 0;
+    const links = await res.json();
+    const nav = document.getElementById('network-bar');
+    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
+    nav.style.display = 'flex';
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>

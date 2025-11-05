@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>String Lights Length • Holiday & Event Minis</title>
+  <meta name="description" content="Estimate string light length." />
+  <link rel="canonical" href="/pages/lights.html" />
+  <link rel="icon" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-083MSQKPFX');
+</script>
+  <!-- Google AdSense Auto ads -->
+<meta name="google-adsense-account" content="ca-pub-6175161566333696">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Holiday & Event Minis", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
+  
+</head>
+<body>
+  <div class="container">
+    <div id="network-bar" class="nav" style="display:none"></div>
+    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/turkey.html">Turkey Servings</a><a class="badge" href="/pages/ham.html">Ham Servings</a><a class="badge" href="/pages/gifts.html">Gift Budget Split</a><a class="badge" href="/pages/lights.html">String Lights</a></div>
+    
+<div class="card"><h1>String Lights Length</h1><p>Estimate total string-light length for a tree or decor.</p></div>
+<div class="card grid grid-2">
+  <div><label class="label">Tree height (ft)</label><input class="input" id="l-height" type="number" value="7"/></div>
+  <div><label class="label">Density</label><select class="input" id="l-density"><option value="minimal">Minimal</option><option value="normal" selected>Normal</option><option value="lush">Lush</option></select></div>
+</div>
+<div class="card"><label class="label">Feet per strand</label><input class="input" id="l-strand" type="number" value="25"/></div>
+<div class="card" id="l-result"></div>
+<div class="card small">Guideline only; adjust for spacing and bulb size.</div>
+<script>
+function lights(){const height=+l_height.value||7;const density=l_density.value;const per=density==='minimal'?10:density==='lush'?15:12;const length=height*per;const strand=+l_strand.value||25;const strands=Math.ceil(length/strand);l_result.innerHTML=`Estimated length: <strong>${Site.fmt(length,0)}</strong> ft • Strands (~${strand} ft): <strong>${strands}</strong>`;}
+['input','change'].forEach(evt=>document.addEventListener(evt,e=>{if(['l-height','l-density','l-strand'].includes(e.target.id))lights();}));lights();
+</script>
+    <div class="footer">© 2025 Holiday & Event Minis • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
+  </div>
+  <script src="/assets/js/main.js"></script>
+  
+<script>
+(async function(){
+  try{
+    const res = await fetch('/assets/network.json');
+    if(!res.ok) throw 0;
+    const links = await res.json();
+    const nav = document.getElementById('network-bar');
+    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
+    nav.style.display = 'flex';
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>

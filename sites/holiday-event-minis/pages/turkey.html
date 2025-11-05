@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Turkey Servings • Holiday & Event Minis</title>
+  <meta name="description" content="Turkey size per person." />
+  <link rel="canonical" href="/pages/turkey.html" />
+  <link rel="icon" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-083MSQKPFX');
+</script>
+  <!-- Google AdSense Auto ads -->
+<meta name="google-adsense-account" content="ca-pub-6175161566333696">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Holiday & Event Minis", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
+  
+</head>
+<body>
+  <div class="container">
+    <div id="network-bar" class="nav" style="display:none"></div>
+    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/turkey.html">Turkey Servings</a><a class="badge" href="/pages/ham.html">Ham Servings</a><a class="badge" href="/pages/gifts.html">Gift Budget Split</a><a class="badge" href="/pages/lights.html">String Lights</a></div>
+    
+<div class="card"><h1>Turkey Servings</h1><p>Estimate whole-turkey size by guest count and leftovers preference.</p></div>
+<div class="card grid grid-2">
+  <div><label class="label">Guests</label><input class="input" id="t-people" type="number" value="8"/></div>
+  <div><label class="label">Leftovers</label><select class="input" id="t-leftovers"><option value="none">No leftovers</option><option value="some" selected>Some</option><option value="lots">Lots</option></select></div>
+</div>
+<div class="card" id="t-result"></div>
+<div class="card small">Guideline only; adjust for sides and appetites.</div>
+<script>
+function turkey(){const ppl=+t_people.value||8;const leftovers=t_leftovers.value;const per=leftovers==='none'?1.0:leftovers==='some'?1.25:1.5;const total=Math.ceil(ppl*per*2)/2;t_result.innerHTML=`Recommended turkey: <strong>${total}</strong> lb`;}
+['input','change'].forEach(evt=>document.addEventListener(evt,e=>{if(['t-people','t-leftovers'].includes(e.target.id))turkey();}));turkey();
+</script>
+    <div class="footer">© 2025 Holiday & Event Minis • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
+  </div>
+  <script src="/assets/js/main.js"></script>
+  
+<script>
+(async function(){
+  try{
+    const res = await fetch('/assets/network.json');
+    if(!res.ok) throw 0;
+    const links = await res.json();
+    const nav = document.getElementById('network-bar');
+    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
+    nav.style.display = 'flex';
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>

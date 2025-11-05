@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shopping List • Home Project Calculators</title>
+  <meta name="description" content="Printable shopping list." />
+  <link rel="canonical" href="/pages/list.html" />
+  <link rel="icon" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-083MSQKPFX');
+</script>
+  <!-- Google AdSense Auto ads -->
+<meta name="google-adsense-account" content="ca-pub-6175161566333696">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Home Project Calculators", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
+  
+</head>
+<body>
+  <div class="container">
+    <div id="network-bar" class="nav" style="display:none"></div>
+    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/paint.html">Paint</a><a class="badge" href="/pages/tile.html">Tile</a><a class="badge" href="/pages/concrete.html">Concrete</a><a class="badge" href="/pages/mulch.html">Mulch</a><a class="badge" href="/pages/list.html">Shopping List</a></div>
+    
+<div class="card"><h1>Shopping List</h1><p>Type items and quantities, then print or save as PDF.</p></div>
+<div class="card grid grid-2">
+  <div>
+    <label class="label">Item</label><input class="input" id="s-name"/>
+    <label class="label">Qty</label><input class="input" id="s-qty" value="1"/>
+    <button class="btn" id="s-add">Add</button>
+    <button class="btn" onclick="window.print()">Print / PDF</button>
+  </div>
+  <div><ul id="s-list"></ul></div>
+</div>
+<script>
+function add(){const n=s_name.value.trim();if(!n)return;const q=s_qty.value||'1';const li=document.createElement('li');li.textContent=q+'× '+n;s_list.appendChild(li);s_name.value='';}
+document.addEventListener('DOMContentLoaded',()=>{s_add.addEventListener('click',add);});
+</script>
+    <div class="footer">© 2025 Home Project Calculators • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
+  </div>
+  <script src="/assets/js/main.js"></script>
+  
+<script>
+(async function(){
+  try{
+    const res = await fetch('/assets/network.json');
+    if(!res.ok) throw 0;
+    const links = await res.json();
+    const nav = document.getElementById('network-bar');
+    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
+    nav.style.display = 'flex';
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>

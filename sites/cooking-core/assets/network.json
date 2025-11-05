@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Party Planner",
+    "url": "https://partyplanner.example/"
+  },
+  {
+    "name": "Cooking Core",
+    "url": "https://cookingcore.example/"
+  },
+  {
+    "name": "Work & Money",
+    "url": "https://workmoney.example/"
+  },
+  {
+    "name": "Energy Cost",
+    "url": "https://energycost.example/"
+  },
+  {
+    "name": "Templates & PDFs",
+    "url": "https://templatespdfs.example/"
+  },
+  {
+    "name": "Travel Cost",
+    "url": "https://travelcost.example/"
+  },
+  {
+    "name": "Sports Pool Helpers",
+    "url": "https://sportspoolhelpers.example/"
+  },
+  {
+    "name": "Dog-Friendly Finder",
+    "url": "https://dogfriendlyfinder.example/"
+  },
+  {
+    "name": "Home Project Calcs",
+    "url": "https://homeprojectcalcs.example/"
+  },
+  {
+    "name": "Holiday Minis",
+    "url": "https://holidayminis.example/"
+  }
+]

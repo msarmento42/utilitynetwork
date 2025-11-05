@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rice Ratios • Cooking Core</title>
+  <meta name="description" content="Water ratios by grain and method." />
+  <link rel="canonical" href="/pages/rice.html" />
+  <link rel="icon" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-083MSQKPFX');
+</script>
+  <!-- Google AdSense Auto ads -->
+<meta name="google-adsense-account" content="ca-pub-6175161566333696">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Cooking Core", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
+  
+</head>
+<body>
+  <div class="container">
+    <div id="network-bar" class="nav" style="display:none"></div>
+    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/scale.html">Recipe Scaler</a><a class="badge" href="/pages/convert.html">Unit Converter</a><a class="badge" href="/pages/rice.html">Rice Ratios</a><a class="badge" href="/pages/brine.html">Brine Timer</a><a class="badge" href="/pages/tacos.html">Taco Planner</a></div>
+    
+<div class="card"><h1>Rice Ratios</h1><p>Pick a grain & method to get water amount.</p></div>
+<div class="card grid grid-2">
+  <div><label class="label">Type & method</label><select class="input" id="r-type"><option value="white-stovetop">White (stovetop)</option><option value="brown-stovetop">Brown (stovetop)</option><option value="jasmine-stovetop">Jasmine (stovetop)</option><option value="basmati-stovetop">Basmati (stovetop)</option><option value="white-instantpot">White (Instant Pot)</option></select></div>
+  <div><label class="label">Rice (cups)</label><input class="input" id="r-rice" type="number" step="0.25" value="2"/></div>
+</div>
+<div class="card" id="r-result"></div>
+<script>
+const RATIOS={'white-stovetop':'1:1.5','brown-stovetop':'1:2','jasmine-stovetop':'1:1.25','basmati-stovetop':'1:1.5','white-instantpot':'1:1.25'};
+function show(){const key=r_type.value;const ratio=RATIOS[key]||'1:1.5';const cups=+r_rice.value||1;const parts=ratio.split(':').map(Number);const water=(cups*parts[1]/parts[0]).toFixed(2);r_result.innerHTML=`${cups} cup(s) rice → <strong>${water}</strong> cup(s) water (${ratio})`;}
+['input','change'].forEach(evt=>document.addEventListener(evt,e=>{if(['r-type','r-rice'].includes(e.target.id))show();}));show();
+</script>
+    <div class="footer">© 2025 Cooking Core • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
+  </div>
+  <script src="/assets/js/main.js"></script>
+  
+<script>
+(async function(){
+  try{
+    const res = await fetch('/assets/network.json');
+    if(!res.ok) throw 0;
+    const links = await res.json();
+    const nav = document.getElementById('network-bar');
+    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
+    nav.style.display = 'flex';
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>

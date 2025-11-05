@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mulch • Home Project Calculators</title>
+  <meta name="description" content="Mulch yards and bags." />
+  <link rel="canonical" href="/pages/mulch.html" />
+  <link rel="icon" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-083MSQKPFX');
+</script>
+  <!-- Google AdSense Auto ads -->
+<meta name="google-adsense-account" content="ca-pub-6175161566333696">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Home Project Calculators", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
+  
+</head>
+<body>
+  <div class="container">
+    <div id="network-bar" class="nav" style="display:none"></div>
+    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/paint.html">Paint</a><a class="badge" href="/pages/tile.html">Tile</a><a class="badge" href="/pages/concrete.html">Concrete</a><a class="badge" href="/pages/mulch.html">Mulch</a><a class="badge" href="/pages/list.html">Shopping List</a></div>
+    
+<div class="card"><h1>Mulch Calculator</h1><p>Estimate mulch in cubic yards and bag count.</p></div>
+<div class="card grid grid-2">
+  <div><label class="label">Length (ft)</label><input class="input" id="m-l" type="number" value="20"/></div>
+  <div><label class="label">Width (ft)</label><input class="input" id="m-w" type="number" value="3"/></div>
+</div>
+<div class="card"><label class="label">Depth (in)</label><input class="input" id="m-d" type="number" value="3"/></div>
+<div class="card" id="m-result"></div>
+<script>
+function mulch(){const len=+m_l.value||20;const wid=+m_w.value||3;const depth=+m_d.value||3;const yards=(len*wid*depth)/324;const bags2=Math.ceil(yards*13.5);m_result.innerHTML=`Mulch: <strong>${Site.fmt(yards,2)}</strong> yd³ • 2 cu ft bags: <strong>${bags2}</strong>`;}
+['input','change'].forEach(evt=>document.addEventListener(evt,e=>{if(['m-l','m-w','m-d'].includes(e.target.id))mulch();}));mulch();
+</script>
+    <div class="footer">© 2025 Home Project Calculators • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
+  </div>
+  <script src="/assets/js/main.js"></script>
+  
+<script>
+(async function(){
+  try{
+    const res = await fetch('/assets/network.json');
+    if(!res.ok) throw 0;
+    const links = await res.json();
+    const nav = document.getElementById('network-bar');
+    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
+    nav.style.display = 'flex';
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>

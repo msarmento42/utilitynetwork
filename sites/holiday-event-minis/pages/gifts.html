@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gift Budget Splitter • Holiday & Event Minis</title>
+  <meta name="description" content="Split a gift budget." />
+  <link rel="canonical" href="/pages/gifts.html" />
+  <link rel="icon" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-083MSQKPFX');
+</script>
+  <!-- Google AdSense Auto ads -->
+<meta name="google-adsense-account" content="ca-pub-6175161566333696">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Holiday & Event Minis", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
+  
+</head>
+<body>
+  <div class="container">
+    <div id="network-bar" class="nav" style="display:none"></div>
+    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/turkey.html">Turkey Servings</a><a class="badge" href="/pages/ham.html">Ham Servings</a><a class="badge" href="/pages/gifts.html">Gift Budget Split</a><a class="badge" href="/pages/lights.html">String Lights</a></div>
+    
+<div class="card"><h1>Gift Budget Splitter</h1><p>Divide a total gift budget equally or by priority weighting.</p></div>
+<div class="card grid grid-2">
+  <div><label class="label">Total budget ($)</label><input class="input" id="g-total" type="number" value="500"/></div>
+  <div><label class="label"># of people</label><input class="input" id="g-num" type="number" value="5"/></div>
+</div>
+<div class="card"><label class="label">Weights (comma-separated, optional)</label><input class="input" id="g-weights" placeholder="e.g., 1,2,1,1,3"/></div>
+<div class="card" id="g-result"></div>
+<script>
+function gifts(){const total=+g_total.value||500;const n=+g_num.value||5;const weights=(g_weights.value||'').split(',').map(s=>+s.trim()).filter(x=>x>0);let shares=[];if(weights.length===n){const sum=weights.reduce((a,b)=>a+b,0);shares=weights.map(w=> total*(w/sum));}else{const each=total/n;shares=Array(n).fill(each);}g_result.innerHTML=shares.map((v,i)=>`Person ${i+1}: $${Site.fmt(v,2)}`).join('<br/>');}
+['input','change'].forEach(evt=>document.addEventListener(evt,e=>{if(['g-total','g-num','g-weights'].includes(e.target.id))gifts();}));gifts();
+</script>
+    <div class="footer">© 2025 Holiday & Event Minis • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
+  </div>
+  <script src="/assets/js/main.js"></script>
+  
+<script>
+(async function(){
+  try{
+    const res = await fetch('/assets/network.json');
+    if(!res.ok) throw 0;
+    const links = await res.json();
+    const nav = document.getElementById('network-bar');
+    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
+    nav.style.display = 'flex';
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>
