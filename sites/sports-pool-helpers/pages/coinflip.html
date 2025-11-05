@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coinflip • Sports Pool Helpers</title>
+  <meta name="description" content="Coin toss helper." />
+  <link rel="canonical" href="/pages/coinflip.html" />
+  <link rel="icon" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-083MSQKPFX');
+</script>
+  <!-- Google AdSense Auto ads -->
+<meta name="google-adsense-account" content="ca-pub-6175161566333696">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Sports Pool Helpers", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
+  
+</head>
+<body>
+  <div class="container">
+    <div id="network-bar" class="nav" style="display:none"></div>
+    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/coinflip.html">Coinflip</a><a class="badge" href="/pages/contrarian.html">Contrarianizer</a></div>
+    
+<div class="card"><h1>Coinflip</h1><p>Flip a coin to break ties in pick’em choices.</p></div>
+<div class="card"><button class="btn btn-primary" onclick="flip()">Flip</button><div id="cf-result" style="margin-top:10px"></div><div id="cf-history" class="small"></div></div>
+<script>
+let history=[];function flip(){const r=Math.random()<0.5?'Heads':'Tails';history.unshift(r);if(history.length>10)history.pop();cf_result.innerHTML='<div class="result">'+r+'</div>';cf_history.innerHTML=history.join(' · ');}
+</script>
+    <div class="footer">© 2025 Sports Pool Helpers • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
+  </div>
+  <script src="/assets/js/main.js"></script>
+  
+<script>
+(async function(){
+  try{
+    const res = await fetch('/assets/network.json');
+    if(!res.ok) throw 0;
+    const links = await res.json();
+    const nav = document.getElementById('network-bar');
+    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
+    nav.style.display = 'flex';
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>

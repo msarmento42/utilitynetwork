@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy • Party Planner Pack</title>
+  <meta name="description" content="Privacy policy for Party Planner Pack." />
+  <link rel="canonical" href="/pages/privacy.html" />
+  <link rel="icon" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-083MSQKPFX');
+</script>
+  <!-- Google AdSense Auto ads -->
+<meta name="google-adsense-account" content="ca-pub-6175161566333696">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Party Planner Pack", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
+  
+</head>
+<body>
+  <div class="container">
+    <div id="network-bar" class="nav" style="display:none"></div>
+    <div class="nav"><a class="badge" href="/">Home</a></div>
+    
+<div class="card">
+  <h1>Privacy Policy</h1>
+  <p class="small">Last updated: 2025-11-05</p>
+  <p>We use Google Analytics (GA4) and Google AdSense Auto ads. Ad partners may set cookies to personalize and measure ads.</p>
+  <h3>Contact</h3>
+  <p>Email: contact@example.com</p>
+</div>
+    <div class="footer">© 2025 Party Planner Pack • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
+  </div>
+  <script src="/assets/js/main.js"></script>
+  
+<script>
+(async function(){
+  try{
+    const res = await fetch('/assets/network.json');
+    if(!res.ok) throw 0;
+    const links = await res.json();
+    const nav = document.getElementById('network-bar');
+    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
+    nav.style.display = 'flex';
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>
