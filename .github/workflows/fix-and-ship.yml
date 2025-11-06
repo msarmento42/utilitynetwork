@@ -1,0 +1,414 @@
+name: Fix & Ship Utility Network
+
+on:
+  workflow_dispatch:
+    inputs:
+      reuse_netlify_site:
+        description: 'Existing Netlify site name to reuse (optional)'
+        required: false
+        default: ''
+      reuse_target_site_folder:
+        description: 'Folder under sites/ to deploy into the existing site (optional)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+env:
+  GA_ID: G-083MSQKPFX
+  ADS_PUB: ca-pub-6175161566333696
+
+jobs:
+  fix-and-ship:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Bootstrap repo and deploy to Netlify
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          REUSE_NETLIFY_SITE: ${{ github.event.inputs.reuse_netlify_site }}
+          REUSE_TARGET_SITE_FOLDER: ${{ github.event.inputs.reuse_target_site_folder }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const https = require('https');
+          const crypto = require('crypto');
+
+          const GA_ID = process.env.GA_ID;
+          const ADS_PUB = process.env.ADS_PUB;
+          const NL_TOKEN = process.env.NETLIFY_TOKEN || '';
+          const REUSE_SITE = (process.env.REUSE_NETLIFY_SITE || '').trim();
+          const REUSE_FOLDER = (process.env.REUSE_TARGET_SITE_FOLDER || '').trim();
+
+          if (!NL_TOKEN) {
+            console.error('Missing NETLIFY_TOKEN (repo secret).');
+            process.exit(1);
+          }
+
+          // ---------- helpers ----------
+          const root = process.cwd();
+          const sitesDir = path.join(root, 'sites');
+
+          function ensureDir(p){ fs.mkdirSync(p, { recursive: true }); }
+          function writeFile(p, content) {
+            ensureDir(path.dirname(p));
+            fs.writeFileSync(p, content);
+          }
+          function exists(p){ return fs.existsSync(p); }
+          function listSiteDirs(){
+            if (!exists(sitesDir)) return [];
+            return fs.readdirSync(sitesDir, { withFileTypes: true })
+              .filter(d => d.isDirectory())
+              .map(d => d.name);
+          }
+          function walkHtml(dir){
+            const out=[];
+            function walk(d){
+              for (const de of fs.readdirSync(d,{withFileTypes:true})){
+                const p = path.join(d,de.name);
+                if (de.isDirectory()) walk(p);
+                else if (de.isFile() && p.toLowerCase().endsWith('.html')) out.push(p);
+              }
+            }
+            walk(dir);
+            return out;
+          }
+          function insertHead(html){
+            const injected = `<!-- GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '${GA_ID}');
+</script>
+
+<!-- AdSense Auto ads -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADS_PUB}" crossorigin="anonymous"></script>
+
+<!-- Network bar (local copy) -->
+<script src="./assets/network-bar.js" defer></script>
+
+<meta name="description" content="Short, unique description for this page.">
+<meta name="viewport" content="width=device-width, initial-scale=1">`;
+            if (html.includes(GA_ID) && html.includes(ADS_PUB)) return html;
+            const idx = html.toLowerCase().lastIndexOf('</head>');
+            if (idx === -1) return html;
+            return html.slice(0, idx) + '\n' + injected + '\n' + html.slice(idx);
+          }
+          function sha1(buf){ return crypto.createHash('sha1').update(buf).digest('hex'); }
+
+          function nl(method, urlPath, body) {
+            const payload = body ? Buffer.from(JSON.stringify(body)) : null;
+            const opts = {
+              method,
+              hostname: 'api.netlify.com',
+              path: `/api/v1${urlPath}`,
+              headers: {
+                'Authorization': `Bearer ${NL_TOKEN}`,
+                'Content-Type': 'application/json',
+              }
+            };
+            return new Promise((resolve, reject) => {
+              const req = https.request(opts, res => {
+                let data = [];
+                res.on('data', c => data.push(c));
+                res.on('end', () => {
+                  const text = Buffer.concat(data).toString('utf8');
+                  if (res.statusCode >= 200 && res.statusCode < 300) {
+                    try { resolve(JSON.parse(text)); } catch { resolve({ ok:true, raw:text }); }
+                  } else {
+                    reject(new Error(`Netlify ${method} ${urlPath} -> ${res.statusCode}: ${text}`));
+                  }
+                });
+              });
+              req.on('error', reject);
+              if (payload) req.write(payload);
+              req.end();
+            });
+          }
+
+          async function nlListSites(){ return nl('GET', '/sites', null); }
+          async function nlFindSiteByName(name){
+            const all = await nlListSites();
+            return all.find(s => s.name === name);
+          }
+          async function nlCreateSite(name){ return nl('POST', '/sites', { name, force_ssl:true }); }
+          async function nlDeployFiles(siteId, files){ // files: [{path, buf}]
+            const map = {}; for (const f of files) map[f.path] = sha1(f.buf);
+            const draft = await nl('POST', `/sites/${siteId}/deploys`, { files: map, draft:false });
+            const deployId = draft.id;
+            const required = (draft.required || []).map(x => x.path || x);
+
+            for (const p of required) {
+              const item = files.find(x => x.path === p);
+              if (!item) continue;
+              await new Promise((resolve, reject) => {
+                const opts = {
+                  method: 'PUT',
+                  hostname: 'api.netlify.com',
+                  path: `/api/v1/deploys/${deployId}/files${encodeURI(p)}`,
+                  headers: {
+                    'Authorization': `Bearer ${NL_TOKEN}`,
+                    'Content-Type': 'application/octet-stream',
+                  }
+                };
+                const req = https.request(opts, res => {
+                  let d=[]; res.on('data', c=>d.push(c)); res.on('end', () => {
+                    if (res.statusCode >= 200 && res.statusCode < 300) resolve();
+                    else reject(new Error(`Upload ${p} failed ${res.statusCode}: ${Buffer.concat(d).toString('utf8')}`));
+                  });
+                });
+                req.on('error', reject);
+                req.write(item.buf);
+                req.end();
+              });
+            }
+
+            for (let i=0;i<40;i++){
+              const st = await nl('GET', `/deploys/${deployId}`, null);
+              if (st.state === 'ready') return st;
+              await new Promise(r=>setTimeout(r, 1500));
+            }
+            throw new Error('Deploy did not become ready in time');
+          }
+
+          // ---------- 1) Ensure root files ----------
+          const rootFiles = {
+            '.github/workflows/ci.yml': `name: CI (lint + audit)
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install linters
+        run: npm i -g htmlhint
+      - name: Generate audit report
+        run: |
+          node scripts/audit.js || echo "audit script not present; add scripts/audit.js to enable checks"
+      - name: Enforce GA4 & AdSense present (soft until audit.js exists)
+        run: |
+          if [ -f reports-audit.json ]; then
+            node -e "const r=require('./reports-audit.json'); const bad=r.filter(x=>!x.gaFound||!x.adsFound||x.missing.length); if(bad.length){console.error('Critical audit failures:', bad); process.exit(1);}"; \
+            echo 'Audit OK'
+          else
+            echo 'reports-audit.json not found; skipping hard enforcement';
+          fi
+      - name: HTML lint (soft fail)
+        run: npx htmlhint 'sites/**/*.html' || true
+`,
+            '.github/workflows/site-health.yml': `name: Site Health (weekly Lighthouse)
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Lighthouse (requires LH_URLS secret)
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: \${{ secrets.LH_URLS || 'https://example.com' }}
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+`,
+            'docs/PROJECT_BRIEF.md': `# Utility Network — Project Brief
+Goal: hands-off AdSense income (Auto ads) ≤ 1 hr/month.
+GA4: ${GA_ID} · AdSense: ${ADS_PUB}
+Monorepo: 10 micro-sites + umbrella. Deploy each /sites/<folder> separately.
+`,
+            'docs/ROADMAP.md': `# Roadmap
+- Add CI + audit
+- Ensure GA/Ads + boilerplates per site
+- JSON-LD across calculators (FAQ/HowTo/SoftwareApplication)
+- Wire local network bar in each site
+- Deploy all to Netlify (one per folder)
+- After domains: update ads.txt/sitemaps + Search Console
+`,
+            'scripts/audit.js': `// CI audit — checks /sites/* for GA/Ads + boilerplates.
+const fs = require('fs'), path = require('path');
+const GA = "${GA_ID}", ADS = "${ADS_PUB}";
+const ROOT = process.cwd(), SITES = path.join(ROOT,'sites');
+const KEY = ["robots.txt","sitemap.xml","ads.txt","privacy.html","terms.html"];
+function findHtml(dir){if(!fs.existsSync(dir))return[];const out=[];for(const de of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,de.name);if(de.isDirectory())out.push(...findHtml(p));else if(de.isFile()&&/\\.html$/i.test(de.name))out.push(p);}return out;}
+function check(site){const base=path.join(SITES,site), html=findHtml(base);const s={site,html:html.length,ga:false,ads:false,missing:[],meta:[]};
+for(const k of KEY) if(!fs.existsSync(path.join(base,k))) s.missing.push(k);
+for(const f of html){const h=fs.readFileSync(f,'utf8');if(h.includes(GA))s.ga=true;if(h.includes(ADS)||h.includes("adsbygoogle.js?client="))s.ads=true;
+if(!/meta\\s+name=["']description["']/i.test(h))s.meta.push({f,issue:"no meta description"});
+if(!/meta\\s+name=["']viewport["']/i.test(h))s.meta.push({f,issue:"no viewport"});
+if(!/<h1\\b/i.test(h))s.meta.push({f,issue:"no H1"});}
+return s;}
+(function(){if(!fs.existsSync(SITES)){fs.writeFileSync('reports-audit.json','[]');return;}
+const sites=fs.readdirSync(SITES,{withFileTypes:true}).filter(d=>d.isDirectory()).map(d=>d.name);
+const rep=sites.map(check);fs.writeFileSync('reports-audit.json',JSON.stringify(rep,null,2));console.log('Audit ok');})();
+`,
+          };
+          for (const [p,c] of Object.entries(rootFiles)) {
+            if (!exists(p) || fs.readFileSync(p,'utf8') !== c) writeFile(p, c);
+          }
+
+          // ---------- 2) Per-site boilerplates + assets + injection ----------
+          const boiler = {
+            'robots.txt': `User-agent: *
+Allow: /
+Sitemap: /sitemap.xml
+`,
+            'ads.txt': `google.com, pub-6175161566333696, DIRECT, f08c47fec0942fa0
+`,
+            'privacy.html': `<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy Policy</title>
+<meta name="description" content="Privacy policy for this site.">
+</head><body>
+<h1>Privacy Policy</h1>
+<p>This site uses Google AdSense Auto ads and Google Analytics 4 for usage insights. Ads and analytics may set cookies and collect usage data in accordance with their policies.</p>
+<p>Contact: contact@domain</p>
+<p>Last updated: ${new Date().toISOString().slice(0,10)}</p>
+</body></html>
+`,
+            'terms.html': `<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Terms</title>
+<meta name="description" content="Terms of use for this site.">
+</head><body>
+<h1>Terms of Use</h1>
+<p>All calculators and estimates are provided “as is” for informational purposes only and are not professional advice.</p>
+<p>Contact: contact@domain</p>
+</body></html>
+`,
+            'sitemap.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://example.netlify.app/</loc></url>
+</urlset>
+`
+          };
+
+          const sites = listSiteDirs();
+          if (!sites.length) {
+            console.error('No /sites/* folders found.');
+            process.exit(1);
+          }
+
+          for (const s of sites) {
+            const base = path.join(sitesDir, s);
+            // boilerplates
+            for (const [fn,content] of Object.entries(boiler)) {
+              const p = path.join(base, fn);
+              if (!exists(p)) writeFile(p, content);
+            }
+            // local assets
+            const assets = path.join(base, 'assets');
+            const nb = `(() => {
+  async function load(){ try{ const r = await fetch('./network.json', {cache:'no-store'}); if(r.ok) return r.json(); }catch{} return []; }
+  function render(items){
+    if(!items.length) return;
+    const bar = document.createElement('nav');
+    bar.setAttribute('aria-label','Utility Network');
+    bar.style.cssText = 'display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;padding:.5rem 1rem;background:#f6f6f7;border-bottom:1px solid #e5e7eb;font:600 14px/1.2 system-ui,-apple-system,Segoe UI,Roboto';
+    const label = document.createElement('span'); label.textContent='Utility Network:'; label.style.cssText='opacity:.7;margin-right:.25rem'; bar.appendChild(label);
+    items.forEach(i=>{ const a=document.createElement('a'); a.href=i.href; a.textContent=i.label;
+      a.style.cssText='text-decoration:none;padding:.25rem .5rem;border-radius:.375rem;border:1px solid #e5e7eb';
+      a.onmouseenter=()=>a.style.background='#fff'; a.onmouseleave=()=>a.style.background=''; bar.appendChild(a); });
+    document.body.prepend(bar);
+  }
+  load().then(render);
+})();\n`;
+            writeFile(path.join(assets, 'network-bar.js'), nb);
+            if (!exists(path.join(assets, 'network.json'))) writeFile(path.join(assets, 'network.json'), JSON.stringify([], null, 2) + '\n');
+
+            // ensure index.html
+            const idx = path.join(base, 'index.html');
+            if (!exists(idx)) writeFile(idx, `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${s}</title></head><body><h1>${s}</h1><p>Welcome! This site is part of the Utility Network.</p></body></html>`);
+
+            // inject head snippet in every html
+            for (const f of walkHtml(base)) {
+              const original = fs.readFileSync(f, 'utf8');
+              const updated = insertHead(original);
+              if (updated !== original) fs.writeFileSync(f, updated);
+            }
+          }
+
+          // ---------- 3) Deploy ----------
+          async function deployFolder(folder){
+            // gather files
+            const base = path.join(sitesDir, folder);
+            const files=[];
+            (function walk(d, rel=''){
+              for (const de of fs.readdirSync(d,{withFileTypes:true})){
+                const p = path.join(d, de.name);
+                const relPath = path.join(rel, de.name);
+                if (de.isDirectory()) walk(p, relPath);
+                else if (de.isFile()) {
+                  const webPath = '/' + relPath.replace(/\\/g,'/');
+                  const buf = fs.readFileSync(p);
+                  files.push({ path: webPath, buf });
+                }
+              }
+            })(base, '');
+            // site name
+            const nice = ('utility-' + folder.replace(/[^a-z0-9-]/gi,'-').toLowerCase()).slice(0,50);
+            let site;
+            if (REUSE_SITE && REUSE_FOLDER && folder === REUSE_FOLDER) {
+              site = await nlFindSiteByName(REUSE_SITE);
+              if (!site) throw new Error(`Netlify site not found: ${REUSE_SITE}`);
+            } else {
+              site = await nlCreateSite(nice);
+            }
+            await nlDeployFiles(site.site_id, files);
+            return site.ssl_url || site.url;
+          }
+
+          (async () => {
+            const urls = {};
+            if (REUSE_SITE && REUSE_FOLDER) {
+              if (!sites.includes(REUSE_FOLDER)) throw new Error(`Folder not under /sites/: ${REUSE_FOLDER}`);
+              const url = await deployFolder(REUSE_FOLDER);
+              urls[REUSE_FOLDER] = url;
+            } else {
+              for (const s of sites) {
+                const url = await deployFolder(s);
+                urls[s] = url;
+              }
+            }
+
+            // write per-site assets/network.json with all live links
+            const list = Object.entries(urls).map(([k,u]) => ({
+              label: k.replace(/[-_]/g,' ').replace(/\b\w/g, m => m.toUpperCase()),
+              href: u
+            }));
+            for (const s of Object.keys(urls)) {
+              const p = path.join(sitesDir, s, 'assets', 'network.json');
+              writeFile(p, JSON.stringify(list, null, 2) + '\n');
+            }
+
+            // write a root snapshot too
+            writeFile(path.join(root, 'docs', 'LIVE_URLS.json'), JSON.stringify(urls, null, 2) + '\n');
+
+            console.log('LIVE URLs:');
+            console.log(urls);
+          })().catch(e => { console.error(e); process.exit(1); });
+          NODE
+
+      - name: Commit & push changes (network.json, boilerplates, workflows)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: bootstrap + deploy (GA/Ads/boilerplates/network)" || echo "No changes to commit"
+          git push
