@@ -1,8 +1,10 @@
 name: Site Health (weekly Lighthouse)
+
 on:
   schedule:
     - cron: '0 9 * * 1'
   workflow_dispatch:
+
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
