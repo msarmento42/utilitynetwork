@@ -1,0 +1,15 @@
+name: Site Health (weekly Lighthouse)
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Lighthouse (requires LH_URLS secret)
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: ${{ secrets.LH_URLS || 'https://example.com' }}
+          uploadArtifacts: true
+          temporaryPublicStorage: true
