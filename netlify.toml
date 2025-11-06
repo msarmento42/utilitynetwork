@@ -1,0 +1,11 @@
+[build]
+  publish = "sites/utility-network-landing"
+  command = ""
+
+# Optional HTTP headers. Safe defaults for static sites.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
