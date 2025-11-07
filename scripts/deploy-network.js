@@ -1,4 +1,4 @@
-// scripts/deploy-network.js — safe Netlify names, sitemap rewrite to live URLs, robust waits
+// scripts/deploy-network.js — fixes: use site.id, reuse existing sites, deploy files, rewrite sitemaps, update umbrella
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
@@ -9,6 +9,9 @@ const ADS_PUB      = process.env.ADS_PUB || 'ca-pub-6175161566333696';
 const UMBRELLA_DIR = process.env.UMBRELLA_DIR || 'sites/utility-network-landing';
 const NL_TOKEN     = process.env.NETLIFY_TOKEN || '';
 const REUSE_UMBRELLA = (process.env.REUSE_UMBRELLA || '').trim();
+// Optional: if your token belongs to multiple teams, you can scope creation:
+// export NETLIFY_ACCOUNT_SLUG=msarmento42s-team
+const ACCOUNT_SLUG = (process.env.NETLIFY_ACCOUNT_SLUG || '').trim();
 
 const POLL_INTERVAL_MS = parseInt(process.env.DEPLOY_POLL_INTERVAL_MS || '3000', 10);  // 3s
 const MAX_WAIT_MS      = parseInt(process.env.DEPLOY_MAX_WAIT_MS      || '600000',10); // 10m
@@ -76,8 +79,14 @@ function nl(method, urlPath, body){
 }
 async function nlListSites(){ return nl('GET','/sites'); }
 async function nlFindByName(name){ const all = await nlListSites(); return all.find(s => s.name === name); }
-async function nlCreateSiteNamed(name){ return nl('POST','/sites',{ name, force_ssl:true }); }
-async function nlCreateSiteRandom(){ return nl('POST','/sites',{ force_ssl:true }); }
+async function nlCreateSiteNamed(name){
+  if (ACCOUNT_SLUG) return nl('POST', `/accounts/${ACCOUNT_SLUG}/sites`, { name, force_ssl:true });
+  return nl('POST','/sites',{ name, force_ssl:true });
+}
+async function nlCreateSiteRandom(){
+  if (ACCOUNT_SLUG) return nl('POST', `/accounts/${ACCOUNT_SLUG}/sites`, { force_ssl:true });
+  return nl('POST','/sites',{ force_ssl:true });
+}
 
 // Try preferred → preferred-<suffix> → random
 async function nlCreateSiteSafe(preferred) {
@@ -107,14 +116,15 @@ async function waitForReady(deployId){
     console.log(`  • waiting on deploy ${deployId}: state=${st}`);
     await new Promise(r=>setTimeout(r, POLL_INTERVAL_MS));
   }
-  console.warn(`⚠️  Timed out waiting for deploy ${deployId}. Continuing (it usually flips to ready shortly).`);
+  console.warn(`⚠️  Timed out waiting for deploy ${deployId}. Continuing.`);
   try { return await nl('GET', `/deploys/${deployId}`); } catch { return { state:'timeout' }; }
 }
 
 async function nlDeploy(tag, siteId, files){
-  console.log(`→ Deploying ${tag} (siteId=${siteId}) with ${files.length} files`);
+  const sid = siteId || '(missing id)';
+  console.log(`→ Deploying ${tag} (siteId=${sid}) with ${files.length} files`);
   const map = {}; for (const f of files) map[f.path] = sha1(f.buf);
-  const draft = await nl('POST', `/sites/${siteId}/deploys`, { files: map, draft:false });
+  const draft = await nl('POST', `/sites/${sid}/deploys`, { files: map, draft:false });
   const deployId = draft.id;
   const required = (draft.required||[]).map(x => x.path || x);
   for (const p of required){
@@ -133,11 +143,12 @@ async function nlDeploy(tag, siteId, files){
 }
 
 (async () => {
+  // --- Guard rails
   if (!exists(sitesRoot)) { console.error('No sites/ folder'); process.exit(1); }
   const umbAbs = path.join(process.cwd(), UMBRELLA_DIR);
   if (!exists(umbAbs)) { console.error(`Umbrella dir not found: ${UMBRELLA_DIR}`); process.exit(1); }
 
-  // Umbrella assets + injection
+  // --- Umbrella assets + injection
   const nbUmbPath = path.join(umbAbs, 'assets', 'network-bar.js');
   ensureDir(path.dirname(nbUmbPath));
   if (!exists(nbUmbPath)) {
@@ -151,7 +162,6 @@ async function nlDeploy(tag, siteId, files){
     const o = fs.readFileSync(f,'utf8'); const u = injectHead(o);
     if (u !== o) fs.writeFileSync(f, u);
   }
-  // visible list if missing
   const umbIndex = path.join(umbAbs,'index.html');
   if (exists(umbIndex)) {
     let html = fs.readFileSync(umbIndex,'utf8');
@@ -165,23 +175,25 @@ async function nlDeploy(tag, siteId, files){
     }
   }
 
-  // Deploy all micro-sites
+  // --- Deploy micro-sites
   const all = fs.readdirSync(sitesRoot, {withFileTypes:true}).filter(d=>d.isDirectory()).map(d=>d.name);
   const micros = all.filter(s => path.join('sites',s) !== UMBRELLA_DIR);
   const live = {};
+
+  // List existing sites once (so we can reuse)
+  const existing = await nlListSites();
+
   for (const s of micros) {
     const base = path.join(sitesRoot, s);
 
+    // ensure core files
     function ensure(p, c){ if (!exists(p)) writeFile(p, c); }
     ensure(path.join(base,'robots.txt'), 'User-agent: *\nAllow: /\nSitemap: /sitemap.xml\n');
     ensure(path.join(base,'ads.txt'), 'google.com, pub-6175161566333696, DIRECT, f08c47fec0942fa0\n');
     ensure(path.join(base,'privacy.html'), '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Privacy Policy</title></head><body><h1>Privacy Policy</h1><p>This site uses Google AdSense Auto ads and GA4.</p><p>Contact: contact@domain</p></body></html>\n');
     ensure(path.join(base,'terms.html'), '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Terms</title></head><body><h1>Terms of Use</h1><p>All calculators are estimates only; not advice.</p></body></html>\n');
-    // placeholder sitemap (rewritten after deploy once URL is known)
     const siteMapPath = path.join(base,'sitemap.xml');
-    if (!exists(siteMapPath)) {
-      writeFile(siteMapPath, '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>\n');
-    }
+    if (!exists(siteMapPath)) writeFile(siteMapPath, '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>\n');
 
     const assets = path.join(base,'assets'); ensureDir(assets);
     const nb = path.join(assets,'network-bar.js'); if (!exists(nb)) writeFile(nb, fs.readFileSync(path.join(umbAbs,'assets','network-bar.js'),'utf8'));
@@ -202,31 +214,44 @@ async function nlDeploy(tag, siteId, files){
       }
     })(base);
 
+    // preferred name & reuse-or-create
     const preferred = ('utility-' + s.replace(/[^a-z0-9-]/gi,'-').toLowerCase()).slice(0,50);
-    const created = await nlCreateSiteSafe(preferred);
-    console.log(`Created site: name=${created.name || '(random)'} url=${created.ssl_url || created.url}`);
-    await nlDeploy(preferred, created.site_id, files);
+    let site = existing.find(x => x.name === preferred) ||
+               existing.find(x => x.name && x.name.startsWith(preferred + '-'));
+    if (!site) site = await nlCreateSiteSafe(preferred);
 
-    const url = (created.ssl_url || created.url || '').replace(/\/*$/,'');
-    live[s] = url;
+    const siteId = site.site_id || site.id;
+    const url = (site.ssl_url || site.url || '').replace(/\/*$/,'');
 
-    // Rewrite sitemap.xml with *real* URL and redeploy just that file
-    const realSitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${url}/</loc></url>\n</urlset>\n`;
+    console.log(`Using site: name=${site.name} id=${siteId} url=${url||'(pending)'}`);
+
+    // deploy files
+    await nlDeploy(preferred, siteId, files);
+
+    // refresh site (get ssl_url)
+    const listed = await nlFindByName(site.name) || site;
+    const liveUrl = (listed.ssl_url || listed.url || url).replace(/\/*$/,'');
+    live[s] = liveUrl;
+
+    // rewrite sitemap & deploy it
+    const realSitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${liveUrl}/</loc></url>\n</urlset>\n`;
     writeFile(siteMapPath, realSitemap);
     const smFiles = [{ path:'/sitemap.xml', buf: Buffer.from(realSitemap, 'utf8') }];
-    await nlDeploy(preferred + '-sitemap', created.site_id, smFiles);
+    await nlDeploy(preferred + '-sitemap', siteId, smFiles);
 
-    console.log(`${s} live at ${url}`);
-    await new Promise(r=>setTimeout(r, 1500));
+    console.log(`${s} live at ${liveUrl}`);
+    await new Promise(r=>setTimeout(r, 1000));
   }
 
-  // Update umbrella network.json and deploy umbrella
+  // --- Update umbrella from live map & deploy umbrella
+  const umbAbs = path.join(process.cwd(), UMBRELLA_DIR);
   const list = Object.entries(live).map(([k,u]) => ({
     label: k.replace(/[-_]/g,' ').replace(/\b\w/g, m => m.toUpperCase()),
     href: u
   }));
   writeFile(path.join(umbAbs,'assets','network.json'), JSON.stringify(list,null,2)+'\n');
 
+  // gather umbrella files
   const umbFiles=[];
   (function gatherUmb(d, rel=''){
     for (const de of fs.readdirSync(d,{withFileTypes:true})){
@@ -243,20 +268,15 @@ async function nlDeploy(tag, siteId, files){
   } else {
     umbSite = await nlCreateSiteSafe('utility-umbrella');
   }
-  await nlDeploy('umbrella', umbSite.site_id, umbFiles);
+  const umbId = umbSite.site_id || umbSite.id;
+  await nlDeploy('umbrella', umbId, umbFiles);
   const umbUrl = (umbSite.ssl_url || umbSite.url || '').replace(/\/*$/,'');
 
+  // include umbrella link in list & write again, then deploy just that file
   const fullList = [{ label: 'Umbrella', href: umbUrl }, ...list];
   writeFile(path.join(umbAbs,'assets','network.json'), JSON.stringify(fullList,null,2)+'\n');
-  const umbFiles2=[];
-  (function gatherUmb2(d, rel=''){
-    for (const de of fs.readdirSync(d,{withFileTypes:true})){
-      const p = path.join(d,de.name), r = path.join(rel,de.name);
-      if (de.isDirectory()) gatherUmb2(p,r);
-      else if (de.isFile()) umbFiles2.push({ path: '/' + r.replace(/\\/g,'/'), buf: fs.readFileSync(p) });
-    }
-  })(umbAbs);
-  await nlDeploy('umbrella-finalize', umbSite.site_id, umbFiles2);
+  const umbJson = [{ path:'/assets/network.json', buf: Buffer.from(JSON.stringify(fullList,null,2)+'\n','utf8') }];
+  await nlDeploy('umbrella-network-json', umbId, umbJson);
 
   console.log('Umbrella:', umbUrl);
   console.log('Micros:', live);
