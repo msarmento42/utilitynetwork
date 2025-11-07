@@ -1,4 +1,4 @@
-// scripts/deploy-network.js — safe site names + longer Netlify wait + robust logs
+// scripts/deploy-network.js — safe Netlify names, sitemap rewrite to live URLs, robust waits
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
@@ -10,7 +10,6 @@ const UMBRELLA_DIR = process.env.UMBRELLA_DIR || 'sites/utility-network-landing'
 const NL_TOKEN     = process.env.NETLIFY_TOKEN || '';
 const REUSE_UMBRELLA = (process.env.REUSE_UMBRELLA || '').trim();
 
-// Tunables (override via repo Variables if needed)
 const POLL_INTERVAL_MS = parseInt(process.env.DEPLOY_POLL_INTERVAL_MS || '3000', 10);  // 3s
 const MAX_WAIT_MS      = parseInt(process.env.DEPLOY_MAX_WAIT_MS      || '600000',10); // 10m
 
@@ -80,7 +79,7 @@ async function nlFindByName(name){ const all = await nlListSites(); return all.f
 async function nlCreateSiteNamed(name){ return nl('POST','/sites',{ name, force_ssl:true }); }
 async function nlCreateSiteRandom(){ return nl('POST','/sites',{ force_ssl:true }); }
 
-// Try preferred → preferred-rand → random
+// Try preferred → preferred-<suffix> → random
 async function nlCreateSiteSafe(preferred) {
   const safe = preferred.toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,50);
   try {
@@ -178,7 +177,12 @@ async function nlDeploy(tag, siteId, files){
     ensure(path.join(base,'ads.txt'), 'google.com, pub-6175161566333696, DIRECT, f08c47fec0942fa0\n');
     ensure(path.join(base,'privacy.html'), '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Privacy Policy</title></head><body><h1>Privacy Policy</h1><p>This site uses Google AdSense Auto ads and GA4.</p><p>Contact: contact@domain</p></body></html>\n');
     ensure(path.join(base,'terms.html'), '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Terms</title></head><body><h1>Terms of Use</h1><p>All calculators are estimates only; not advice.</p></body></html>\n');
-    ensure(path.join(base,'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>https://example.netlify.app/</loc></url>\n</urlset>\n');
+    // placeholder sitemap (rewritten after deploy once URL is known)
+    const siteMapPath = path.join(base,'sitemap.xml');
+    if (!exists(siteMapPath)) {
+      writeFile(siteMapPath, '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>\n');
+    }
+
     const assets = path.join(base,'assets'); ensureDir(assets);
     const nb = path.join(assets,'network-bar.js'); if (!exists(nb)) writeFile(nb, fs.readFileSync(path.join(umbAbs,'assets','network-bar.js'),'utf8'));
     const nj = path.join(assets,'network.json'); if (!exists(nj)) writeFile(nj, JSON.stringify([],null,2)+'\n');
@@ -202,8 +206,16 @@ async function nlDeploy(tag, siteId, files){
     const created = await nlCreateSiteSafe(preferred);
     console.log(`Created site: name=${created.name || '(random)'} url=${created.ssl_url || created.url}`);
     await nlDeploy(preferred, created.site_id, files);
-    const url = created.ssl_url || created.url;
+
+    const url = (created.ssl_url || created.url || '').replace(/\/*$/,'');
     live[s] = url;
+
+    // Rewrite sitemap.xml with *real* URL and redeploy just that file
+    const realSitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${url}/</loc></url>\n</urlset>\n`;
+    writeFile(siteMapPath, realSitemap);
+    const smFiles = [{ path:'/sitemap.xml', buf: Buffer.from(realSitemap, 'utf8') }];
+    await nlDeploy(preferred + '-sitemap', created.site_id, smFiles);
+
     console.log(`${s} live at ${url}`);
     await new Promise(r=>setTimeout(r, 1500));
   }
@@ -232,7 +244,7 @@ async function nlDeploy(tag, siteId, files){
     umbSite = await nlCreateSiteSafe('utility-umbrella');
   }
   await nlDeploy('umbrella', umbSite.site_id, umbFiles);
-  const umbUrl = umbSite.ssl_url || umbSite.url;
+  const umbUrl = (umbSite.ssl_url || umbSite.url || '').replace(/\/*$/,'');
 
   const fullList = [{ label: 'Umbrella', href: umbUrl }, ...list];
   writeFile(path.join(umbAbs,'assets','network.json'), JSON.stringify(fullList,null,2)+'\n');
