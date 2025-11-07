@@ -1,4 +1,4 @@
-// scripts/deploy-network.js (longer wait, robust logs)
+// scripts/deploy-network.js — safe site names + longer Netlify wait + robust logs
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
@@ -10,7 +10,7 @@ const UMBRELLA_DIR = process.env.UMBRELLA_DIR || 'sites/utility-network-landing'
 const NL_TOKEN     = process.env.NETLIFY_TOKEN || '';
 const REUSE_UMBRELLA = (process.env.REUSE_UMBRELLA || '').trim();
 
-// Tunables (can override via repo Variables)
+// Tunables (override via repo Variables if needed)
 const POLL_INTERVAL_MS = parseInt(process.env.DEPLOY_POLL_INTERVAL_MS || '3000', 10);  // 3s
 const MAX_WAIT_MS      = parseInt(process.env.DEPLOY_MAX_WAIT_MS      || '600000',10); // 10m
 
@@ -51,7 +51,7 @@ function injectHead(html){
   return i === -1 ? html : (html.slice(0,i) + '\n' + snippet + '\n' + html.slice(i));
 }
 
-// Netlify API
+// Netlify API helpers
 function sha1(buf){ return crypto.createHash('sha1').update(buf).digest('hex'); }
 function nl(method, urlPath, body){
   const payload = body ? Buffer.from(JSON.stringify(body)) : null;
@@ -77,7 +77,26 @@ function nl(method, urlPath, body){
 }
 async function nlListSites(){ return nl('GET','/sites'); }
 async function nlFindByName(name){ const all = await nlListSites(); return all.find(s => s.name === name); }
-async function nlCreateSite(name){ return nl('POST','/sites',{ name, force_ssl:true }); }
+async function nlCreateSiteNamed(name){ return nl('POST','/sites',{ name, force_ssl:true }); }
+async function nlCreateSiteRandom(){ return nl('POST','/sites',{ force_ssl:true }); }
+
+// Try preferred → preferred-rand → random
+async function nlCreateSiteSafe(preferred) {
+  const safe = preferred.toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,50);
+  try {
+    return await nlCreateSiteNamed(safe);
+  } catch (e1) {
+    if (!/422/.test(String(e1)) && !/subdomain/.test(String(e1))) throw e1;
+    const suffix = (Date.now().toString(36)+Math.random().toString(36).slice(2,8)).slice(-6);
+    const alt = (safe + '-' + suffix).slice(0,50);
+    try {
+      return await nlCreateSiteNamed(alt);
+    } catch (e2) {
+      if (!/422/.test(String(e2)) && !/subdomain/.test(String(e2))) throw e2;
+      return await nlCreateSiteRandom();
+    }
+  }
+}
 
 async function waitForReady(deployId){
   const start = Date.now();
@@ -169,6 +188,7 @@ async function nlDeploy(tag, siteId, files){
       if (u !== o) fs.writeFileSync(f, u);
     }
 
+    // collect files
     const files=[];
     (function gather(d, rel=''){
       for (const de of fs.readdirSync(d,{withFileTypes:true})){
@@ -178,9 +198,10 @@ async function nlDeploy(tag, siteId, files){
       }
     })(base);
 
-    const name = ('utility-' + s.replace(/[^a-z0-9-]/gi,'-').toLowerCase()).slice(0,50);
-    const created = await nlCreateSite(name);
-    await nlDeploy(name, created.site_id, files);
+    const preferred = ('utility-' + s.replace(/[^a-z0-9-]/gi,'-').toLowerCase()).slice(0,50);
+    const created = await nlCreateSiteSafe(preferred);
+    console.log(`Created site: name=${created.name || '(random)'} url=${created.ssl_url || created.url}`);
+    await nlDeploy(preferred, created.site_id, files);
     const url = created.ssl_url || created.url;
     live[s] = url;
     console.log(`${s} live at ${url}`);
@@ -208,7 +229,7 @@ async function nlDeploy(tag, siteId, files){
     umbSite = await nlFindByName(REUSE_UMBRELLA);
     if (!umbSite) throw new Error('Umbrella Netlify site not found: ' + REUSE_UMBRELLA);
   } else {
-    umbSite = await nlCreateSite('utility-umbrella');
+    umbSite = await nlCreateSiteSafe('utility-umbrella');
   }
   await nlDeploy('umbrella', umbSite.site_id, umbFiles);
   const umbUrl = umbSite.ssl_url || umbSite.url;
