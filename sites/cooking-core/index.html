@@ -1,59 +1,17 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kitchen Calculators • Cooking Core</title>
-  <meta name="description" content="Kitchen calculators for everyday cooking." />
-  <link rel="canonical" href="/index.html" />
-  <link rel="icon" href="/assets/favicon.png" />
-  <link rel="stylesheet" href="/assets/css/main.css" />
-  <!-- Google Analytics 4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-083MSQKPFX');
-</script>
-  <!-- Google AdSense Auto ads -->
-<meta name="google-adsense-account" content="ca-pub-6175161566333696">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Cooking Core", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
-  
-
-<!-- Network bar -->
-<script src="/shared/components/network-bar.js" defer></script>
-</head>
-<body>
-  <div class="container">
-    <div id="network-bar" class="nav" style="display:none"></div>
-    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/scale.html">Recipe Scaler</a><a class="badge" href="/pages/convert.html">Unit Converter</a><a class="badge" href="/pages/rice.html">Rice Ratios</a><a class="badge" href="/pages/brine.html">Brine Timer</a><a class="badge" href="/pages/tacos.html">Taco Planner</a></div>
-    
-<div class="card"><h1>Cooking Core</h1><p>Kitchen calculators: scale recipes, convert units, rice ratios, brine timing, taco planner.</p></div>
-<div class="grid grid-2">
-  <div class="card"><h2>Recipe Scaler</h2><a class="btn btn-primary" href="/pages/scale.html">Open</a></div>
-  <div class="card"><h2>Unit Converter</h2><a class="btn btn-primary" href="/pages/convert.html">Open</a></div>
-  <div class="card"><h2>Rice Ratios</h2><a class="btn btn-primary" href="/pages/rice.html">Open</a></div>
-  <div class="card"><h2>Brine Timer</h2><a class="btn btn-primary" href="/pages/brine.html">Open</a></div>
-  <div class="card"><h2>Taco Planner</h2><a class="btn btn-primary" href="/pages/tacos.html">Open</a></div>
-</div>
-    <div class="footer">© 2025 Cooking Core • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
-  </div>
-  <script src="/assets/js/main.js"></script>
-  
-<script>
-(async function(){
-  try{
-    const res = await fetch('/assets/network.json');
-    if(!res.ok) throw 0;
-    const links = await res.json();
-    const nav = document.getElementById('network-bar');
-    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
-    nav.style.display = 'flex';
-  }catch(e){}
-})();
-</script>
-
-</body>
-</html>
+<!doctype html><html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cooking Core</title>
+  <link rel="icon" href="data:,">
+  <!-- GA4 (defaults; repo Variables GA_ID/ADS_PUB can override at deploy time) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config','G-083MSQKPFX');</script>
+  <!-- AdSense Auto ads -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script src="assets/network-bar.js" defer></script>
+  <style>body{font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto;margin:0;background:#fafafa;color:#111}main{max-width:920px;margin:40px auto;padding:0 16px}</style>
+</head><body>
+  <main>
+    <h1>Cooking Core</h1>
+    <p>Simple calculators and printable helpers. Estimates only.</p>
+  </main>
+</body></html>
