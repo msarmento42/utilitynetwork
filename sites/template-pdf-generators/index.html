@@ -1,59 +1,17 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Template Generators • Template & PDF Generators</title>
-  <meta name="description" content="Build and print simple templates." />
-  <link rel="canonical" href="/index.html" />
-  <link rel="icon" href="/assets/favicon.png" />
-  <link rel="stylesheet" href="/assets/css/main.css" />
-  <!-- Google Analytics 4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-083MSQKPFX');
-</script>
-  <!-- Google AdSense Auto ads -->
-<meta name="google-adsense-account" content="ca-pub-6175161566333696">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Template & PDF Generators", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
-  
-
-<!-- Network bar -->
-<script src="/shared/components/network-bar.js" defer></script>
-</head>
-<body>
-  <div class="container">
-    <div id="network-bar" class="nav" style="display:none"></div>
-    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/invite.html">Invite</a><a class="badge" href="/pages/chore.html">Chore Chart</a><a class="badge" href="/pages/grocery.html">Grocery</a><a class="badge" href="/pages/packing.html">Packing</a><a class="badge" href="/pages/habit.html">Habit</a></div>
-    
-<div class="card"><h1>Template & PDF Generators</h1><p>Create simple printable templates in your browser.</p></div>
-<div class="grid grid-2">
-  <div class="card"><h2>Invite Maker</h2><a class="btn btn-primary" href="/pages/invite.html">Open</a></div>
-  <div class="card"><h2>Chore Chart</h2><a class="btn btn-primary" href="/pages/chore.html">Open</a></div>
-  <div class="card"><h2>Grocery List</h2><a class="btn btn-primary" href="/pages/grocery.html">Open</a></div>
-  <div class="card"><h2>Packing List</h2><a class="btn btn-primary" href="/pages/packing.html">Open</a></div>
-  <div class="card"><h2>Habit Tracker</h2><a class="btn btn-primary" href="/pages/habit.html">Open</a></div>
-</div>
-    <div class="footer">© 2025 Template & PDF Generators • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
-  </div>
-  <script src="/assets/js/main.js"></script>
-  
-<script>
-(async function(){
-  try{
-    const res = await fetch('/assets/network.json');
-    if(!res.ok) throw 0;
-    const links = await res.json();
-    const nav = document.getElementById('network-bar');
-    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
-    nav.style.display = 'flex';
-  }catch(e){}
-})();
-</script>
-
-</body>
-</html>
+<!doctype html><html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Template & PDF Generators</title>
+  <link rel="icon" href="data:,">
+  <!-- GA4 (defaults; repo Variables GA_ID/ADS_PUB can override at deploy time) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config','G-083MSQKPFX');</script>
+  <!-- AdSense Auto ads -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script src="assets/network-bar.js" defer></script>
+  <style>body{font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto;margin:0;background:#fafafa;color:#111}main{max-width:920px;margin:40px auto;padding:0 16px}</style>
+</head><body>
+  <main>
+    <h1>Template & PDF Generators</h1>
+    <p>Simple calculators and printable helpers. Estimates only.</p>
+  </main>
+</body></html>

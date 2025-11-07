@@ -1,0 +1,28 @@
+name: Deploy Utility Network (umbrella + 15 micro-sites)
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "sites/**"
+      - "scripts/**"
+permissions: { contents: read }
+env:
+  GA_ID: ${{ vars.GA_ID || 'G-083MSQKPFX' }}
+  ADS_PUB: ${{ vars.ADS_PUB || 'ca-pub-6175161566333696' }}
+  UMBRELLA_SITE_NAME: ${{ vars.UMBRELLA_NAME || 'golden-elf-b1aa95' }}
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: Install Netlify CLI + jq
+        run: |
+          npm i -g netlify-cli
+          sudo apt-get update && sudo apt-get install -y jq
+      - name: Deploy all sites
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        run: bash scripts/deploy-all-with-netlify-cli.sh

@@ -1,9 +1,0 @@
-{
-  "@context":"https://schema.org",
-  "@type":"FAQPage",
-  "mainEntity":[
-    {"@type":"Question","name":"How accurate is this calculator?","acceptedAnswer":{"@type":"Answer","text":"It provides quick estimates for planning only. Actual results may vary."}},
-    {"@type":"Question","name":"Do you store my inputs?","acceptedAnswer":{"@type":"Answer","text":"No, all calculations are done in your browser."}},
-    {"@type":"Question","name":"Is this financial advice?","acceptedAnswer":{"@type":"Answer","text":"No. This tool is for informational purposes only."}}
-  ]
-}

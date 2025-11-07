@@ -1,62 +1,43 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Utility Network • Utility Network</title>
-  <meta name="description" content="Umbrella landing page for your micro-sites." />
-  <link rel="canonical" href="/index.html" />
-  <link rel="icon" href="/assets/favicon.png" />
-  <link rel="stylesheet" href="/assets/css/main.css" />
-  <!-- Google Analytics 4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-083MSQKPFX');
-</script>
-  <!-- Google AdSense Auto ads -->
-<meta name="google-adsense-account" content="ca-pub-6175161566333696">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Utility Network", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
-  
-
-<!-- Network bar -->
-<script src="/shared/components/network-bar.js" defer></script>
-</head>
-<body>
-  <div class="container">
-    <div id="network-bar" class="nav" style="display:none"></div>
-    <div class="nav"><a class="badge" href="/index.html">Home</a></div>
-    
-<div class="card"><h1>Utility Network</h1><p>A family of lightweight, fast, ad-supported utilities. Replace placeholder links with your live domains.</p></div>
-<div class="grid grid-2"><div class="card"><h2>Party Planner Pack</h2><p>Plan drinks, food, pizza, playlists, seating.</p><a class="btn btn-primary" href="https://partyplanner.example/">Visit</a></div>
-<div class="card"><h2>Cooking Core</h2><p>Recipe scaler, unit converter, rice ratios, brine timer, tacos per person.</p><a class="btn btn-primary" href="https://cookingcore.example/">Visit</a></div>
-<div class="card"><h2>Work & Money Utilities</h2><p>Salary↔hourly, PTO, paycheck diff, overtime.</p><a class="btn btn-primary" href="https://workmoney.example/">Visit</a></div>
-<div class="card"><h2>Home Energy Cost</h2><p>Appliance, heater, fridge, washer/dryer costs.</p><a class="btn btn-primary" href="https://energycost.example/">Visit</a></div>
-<div class="card"><h2>Template & PDF Generators</h2><p>Invites, chore charts, grocery & packing lists, habit tracker.</p><a class="btn btn-primary" href="https://templatespdfs.example/">Visit</a></div>
-<div class="card"><h2>Travel Cost Minis</h2><p>Gas cost, per-diem, park fees, hotel tax.</p><a class="btn btn-primary" href="https://travelcost.example/">Visit</a></div>
-<div class="card"><h2>Sports Pool Helpers</h2><p>Coinflip & contrarianizer (non-gambling).</p><a class="btn btn-primary" href="https://sportspoolhelpers.example/">Visit</a></div>
-<div class="card"><h2>Dog-Friendly Local Finder</h2><p>Static directory template for your city.</p><a class="btn btn-primary" href="https://dogfriendlyfinder.example/">Visit</a></div>
-<div class="card"><h2>Home Project Calculators</h2><p>Paint, tile, concrete, mulch + shopping list.</p><a class="btn btn-primary" href="https://homeprojectcalcs.example/">Visit</a></div>
-<div class="card"><h2>Holiday & Event Minis</h2><p>Turkey/ham servings, gift-budget split, string-lights length.</p><a class="btn btn-primary" href="https://holidayminis.example/">Visit</a></div></div>
-    <div class="footer">© 2025 Utility Network • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
-  </div>
-  <script src="/assets/js/main.js"></script>
-  
-<script>
-(async function(){
-  try{
-    const res = await fetch('/assets/network.json');
-    if(!res.ok) throw 0;
-    const links = await res.json();
-    const nav = document.getElementById('network-bar');
-    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
-    nav.style.display = 'flex';
-  }catch(e){}
-})();
-</script>
-
-</body>
-</html>
+<!doctype html><html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Utility Network</title>
+  <link rel="icon" href="data:,">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID:-G-083MSQKPFX}"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config','${GA_ID:-G-083MSQKPFX}');</script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADS_PUB:-ca-pub-6175161566333696}" crossorigin="anonymous"></script>
+  <script src="assets/network-bar.js" defer></script>
+  <style>
+    :root{--bg:#0b1220;--fg:#fff}
+    body{margin:0;background:#fafafa;font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto}
+    header{background:var(--bg);color:var(--fg);padding:56px 16px}
+    header .wrap{max-width:1000px;margin:0 auto}
+    h1{margin:0 0 8px}
+    .grid{max-width:1000px;margin:24px auto;display:grid;gap:16px;padding:0 16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
+    .card h3{margin:0}.btn{display:inline-block;padding:8px 12px;border:1px solid #e5e7eb;border-radius:10px;text-decoration:none}
+  </style>
+</head><body>
+  <header><div class="wrap">
+    <h1>Utility Network</h1>
+    <p>Everyday life & home calculators. Fast, lightweight, and free.</p>
+  </div></header>
+  <section class="grid" id="cards"></section>
+  <script>
+    fetch('assets/network.json',{cache:'no-store'}).then(r=>r.json()).then(items=>{
+      const cards=document.getElementById('cards');
+      const make=(n,u,d)=>`<article class="card"><h3>${n}</h3><p>${d}</p><a class="btn" href="${u}">Visit</a></article>`;
+      const desc={
+        "Party Planner Pack":"Drinks, food, pizza, playlists, seating.","Cooking Core":"Recipe scaler, units, rice ratios, timers.",
+        "Home Project Calculators":"Paint, tile, concrete, mulch & materials.","Home Energy Cost":"Appliance kWh cost, heaters, bulbs & savings.",
+        "Travel Cost Minis":"Gas trip cost, per-diem, hotel tax, packing.","Template & PDF Generators":"Grocery list, invites, chore chart, habit tracker.",
+        "Work & Money Utilities":"Salary↔hourly, PTO, paycheck diff, bill split.","Shopping Saver Tools":"Unit price, BOGO break-even, sales tax.",
+        "Subscription Tamer":"Track subs, per-use, annual vs monthly.","Holiday & Event Minis":"Turkey servings, lights length, BBQ planner.",
+        "Cleaning & Laundry Lab":"Detergent dose, dilution, schedules, stain timers.","Moving & Storage Planner":"Box count, truck size, unit size, labels.",
+        "Yard & Garden Planner":"Plant spacing, raised beds, mulch, water cost.","Home Office & Media Setup":"Viewing distance, throw, desk layout, bandwidth.",
+        "Time & Scheduling Tools":"Timezones, business days, commute fuel, sunrise."
+      };
+      items.forEach(i=>cards.insertAdjacentHTML('beforeend', make(i.name, i.url, desc[i.name]||"Quick calculators & helpers")));
+    }).catch(console.error);
+  </script>
+</body></html>
+<!-- trigger 2025-11-07T21:52:38Z -->

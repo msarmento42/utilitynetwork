@@ -1,59 +1,17 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Home Project Calculators • Home Project Calculators</title>
-  <meta name="description" content="Paint, tile, concrete, mulch calculators." />
-  <link rel="canonical" href="/index.html" />
-  <link rel="icon" href="/assets/favicon.png" />
-  <link rel="stylesheet" href="/assets/css/main.css" />
-  <!-- Google Analytics 4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-083MSQKPFX');
-</script>
-  <!-- Google AdSense Auto ads -->
-<meta name="google-adsense-account" content="ca-pub-6175161566333696">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "Home Project Calculators", "url": "https://example.com/", "logo": "https://example.com/assets/favicon.png"}</script>
-  
-
-<!-- Network bar -->
-<script src="/shared/components/network-bar.js" defer></script>
-</head>
-<body>
-  <div class="container">
-    <div id="network-bar" class="nav" style="display:none"></div>
-    <div class="nav"><a class="badge" href="/index.html">Home</a><a class="badge" href="/pages/paint.html">Paint</a><a class="badge" href="/pages/tile.html">Tile</a><a class="badge" href="/pages/concrete.html">Concrete</a><a class="badge" href="/pages/mulch.html">Mulch</a><a class="badge" href="/pages/list.html">Shopping List</a></div>
-    
-<div class="card"><h1>Home Project Calculators</h1><p>Quick estimates for paint, tile, concrete, and mulch + a printable shopping list.</p></div>
-<div class="grid grid-2">
-  <div class="card"><h2>Paint</h2><p>Gallons by room size, coats, and coverage.</p><a class="btn btn-primary" href="/pages/paint.html">Open</a></div>
-  <div class="card"><h2>Tile</h2><p>Tile count & boxes with waste factor.</p><a class="btn btn-primary" href="/pages/tile.html">Open</a></div>
-  <div class="card"><h2>Concrete</h2><p>Slab volume in yards + bag counts.</p><a class="btn btn-primary" href="/pages/concrete.html">Open</a></div>
-  <div class="card"><h2>Mulch</h2><p>Yards of mulch by bed dimensions.</p><a class="btn btn-primary" href="/pages/mulch.html">Open</a></div>
-  <div class="card"><h2>Shopping List</h2><p>Compile quantities to print.</p><a class="btn btn-primary" href="/pages/list.html">Open</a></div>
-</div>
-    <div class="footer">© 2025 Home Project Calculators • <a href="/pages/privacy.html">Privacy</a> • <a href="/pages/terms.html">Terms</a></div>
-  </div>
-  <script src="/assets/js/main.js"></script>
-  
-<script>
-(async function(){
-  try{
-    const res = await fetch('/assets/network.json');
-    if(!res.ok) throw 0;
-    const links = await res.json();
-    const nav = document.getElementById('network-bar');
-    nav.innerHTML = links.map(l=>`<a class="badge" href="${l.url}">${l.name}</a>`).join(' · ');
-    nav.style.display = 'flex';
-  }catch(e){}
-})();
-</script>
-
-</body>
-</html>
+<!doctype html><html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home Project Calculators</title>
+  <link rel="icon" href="data:,">
+  <!-- GA4 (defaults; repo Variables GA_ID/ADS_PUB can override at deploy time) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-083MSQKPFX"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config','G-083MSQKPFX');</script>
+  <!-- AdSense Auto ads -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6175161566333696" crossorigin="anonymous"></script>
+  <script src="assets/network-bar.js" defer></script>
+  <style>body{font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto;margin:0;background:#fafafa;color:#111}main{max-width:920px;margin:40px auto;padding:0 16px}</style>
+</head><body>
+  <main>
+    <h1>Home Project Calculators</h1>
+    <p>Simple calculators and printable helpers. Estimates only.</p>
+  </main>
+</body></html>
