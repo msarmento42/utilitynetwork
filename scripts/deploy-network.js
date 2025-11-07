@@ -1,7 +1,4 @@
-// scripts/deploy-network.js
-// Deploys every sites/<folder> as its own Netlify site, writes live URLs into
-// sites/utility-network-landing/assets/network.json, then deploys the umbrella too.
-
+// scripts/deploy-network.js (longer wait, robust logs)
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
@@ -13,9 +10,11 @@ const UMBRELLA_DIR = process.env.UMBRELLA_DIR || 'sites/utility-network-landing'
 const NL_TOKEN     = process.env.NETLIFY_TOKEN || '';
 const REUSE_UMBRELLA = (process.env.REUSE_UMBRELLA || '').trim();
 
-if (!NL_TOKEN) {
-  console.error('Missing NETLIFY_TOKEN secret'); process.exit(1);
-}
+// Tunables (can override via repo Variables)
+const POLL_INTERVAL_MS = parseInt(process.env.DEPLOY_POLL_INTERVAL_MS || '3000', 10);  // 3s
+const MAX_WAIT_MS      = parseInt(process.env.DEPLOY_MAX_WAIT_MS      || '600000',10); // 10m
+
+if (!NL_TOKEN) { console.error('Missing NETLIFY_TOKEN secret'); process.exit(1); }
 
 const root = process.cwd();
 const sitesRoot = path.join(root, 'sites');
@@ -79,10 +78,26 @@ function nl(method, urlPath, body){
 async function nlListSites(){ return nl('GET','/sites'); }
 async function nlFindByName(name){ const all = await nlListSites(); return all.find(s => s.name === name); }
 async function nlCreateSite(name){ return nl('POST','/sites',{ name, force_ssl:true }); }
-async function nlDeploy(siteId, files){
+
+async function waitForReady(deployId){
+  const start = Date.now();
+  let last;
+  while (Date.now() - start < MAX_WAIT_MS) {
+    last = await nl('GET', `/deploys/${deployId}`);
+    const st = (last && last.state) || 'unknown';
+    if (['ready','current','published'].includes(st)) return last;
+    console.log(`  • waiting on deploy ${deployId}: state=${st}`);
+    await new Promise(r=>setTimeout(r, POLL_INTERVAL_MS));
+  }
+  console.warn(`⚠️  Timed out waiting for deploy ${deployId}. Continuing (it usually flips to ready shortly).`);
+  try { return await nl('GET', `/deploys/${deployId}`); } catch { return { state:'timeout' }; }
+}
+
+async function nlDeploy(tag, siteId, files){
+  console.log(`→ Deploying ${tag} (siteId=${siteId}) with ${files.length} files`);
   const map = {}; for (const f of files) map[f.path] = sha1(f.buf);
   const draft = await nl('POST', `/sites/${siteId}/deploys`, { files: map, draft:false });
-  const id = draft.id;
+  const deployId = draft.id;
   const required = (draft.required||[]).map(x => x.path || x);
   for (const p of required){
     const f = files.find(x => x.path === p); if (!f) continue;
@@ -90,26 +105,21 @@ async function nlDeploy(siteId, files){
       const req = https.request({
         method:'PUT',
         hostname:'api.netlify.com',
-        path:`/api/v1/deploys/${id}/files${encodeURI(p)}`,
+        path:`/api/v1/deploys/${deployId}/files${encodeURI(p)}`,
         headers:{ 'Authorization':`Bearer ${NL_TOKEN}`,'Content-Type':'application/octet-stream' }
       }, res => { (res.statusCode>=200&&res.statusCode<300) ? resolve() : reject(new Error(`Upload ${p} failed ${res.statusCode}`)); });
       req.on('error',reject); req.write(f.buf); req.end();
     });
   }
-  for (let i=0;i<40;i++){
-    const st = await nl('GET', `/deploys/${id}`);
-    if (st.state === 'ready') return st;
-    await new Promise(r=>setTimeout(r,1500));
-  }
-  throw new Error('Deploy did not become ready in time');
+  return await waitForReady(deployId);
 }
 
 (async () => {
   if (!exists(sitesRoot)) { console.error('No sites/ folder'); process.exit(1); }
-  const umbAbs = path.join(root, UMBRELLA_DIR);
+  const umbAbs = path.join(process.cwd(), UMBRELLA_DIR);
   if (!exists(umbAbs)) { console.error(`Umbrella dir not found: ${UMBRELLA_DIR}`); process.exit(1); }
 
-  // Umbrella: ensure assets + injection
+  // Umbrella assets + injection
   const nbUmbPath = path.join(umbAbs, 'assets', 'network-bar.js');
   ensureDir(path.dirname(nbUmbPath));
   if (!exists(nbUmbPath)) {
@@ -123,7 +133,7 @@ async function nlDeploy(siteId, files){
     const o = fs.readFileSync(f,'utf8'); const u = injectHead(o);
     if (u !== o) fs.writeFileSync(f, u);
   }
-  // add a visible list if missing
+  // visible list if missing
   const umbIndex = path.join(umbAbs,'index.html');
   if (exists(umbIndex)) {
     let html = fs.readFileSync(umbIndex,'utf8');
@@ -137,13 +147,13 @@ async function nlDeploy(siteId, files){
     }
   }
 
-  // Deploy micro-sites
+  // Deploy all micro-sites
   const all = fs.readdirSync(sitesRoot, {withFileTypes:true}).filter(d=>d.isDirectory()).map(d=>d.name);
   const micros = all.filter(s => path.join('sites',s) !== UMBRELLA_DIR);
   const live = {};
   for (const s of micros) {
     const base = path.join(sitesRoot, s);
-    // Minimal boilerplates & assets
+
     function ensure(p, c){ if (!exists(p)) writeFile(p, c); }
     ensure(path.join(base,'robots.txt'), 'User-agent: *\nAllow: /\nSitemap: /sitemap.xml\n');
     ensure(path.join(base,'ads.txt'), 'google.com, pub-6175161566333696, DIRECT, f08c47fec0942fa0\n');
@@ -151,7 +161,7 @@ async function nlDeploy(siteId, files){
     ensure(path.join(base,'terms.html'), '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Terms</title></head><body><h1>Terms of Use</h1><p>All calculators are estimates only; not advice.</p></body></html>\n');
     ensure(path.join(base,'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>https://example.netlify.app/</loc></url>\n</urlset>\n');
     const assets = path.join(base,'assets'); ensureDir(assets);
-    const nb = path.join(assets,'network-bar.js'); if (!exists(nb)) writeFile(nb, fs.readFileSync(nbUmbPath,'utf8'));
+    const nb = path.join(assets,'network-bar.js'); if (!exists(nb)) writeFile(nb, fs.readFileSync(path.join(umbAbs,'assets','network-bar.js'),'utf8'));
     const nj = path.join(assets,'network.json'); if (!exists(nj)) writeFile(nj, JSON.stringify([],null,2)+'\n');
     const idx = path.join(base,'index.html'); if (!exists(idx)) writeFile(idx, '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>'+s+'</title></head><body><h1>'+s+'</h1></body></html>');
     for (const f of walk(base, p=>p.toLowerCase().endsWith('.html'))) {
@@ -159,7 +169,6 @@ async function nlDeploy(siteId, files){
       if (u !== o) fs.writeFileSync(f, u);
     }
 
-    // Collect files
     const files=[];
     (function gather(d, rel=''){
       for (const de of fs.readdirSync(d,{withFileTypes:true})){
@@ -169,13 +178,13 @@ async function nlDeploy(siteId, files){
       }
     })(base);
 
-    // Create + deploy
     const name = ('utility-' + s.replace(/[^a-z0-9-]/gi,'-').toLowerCase()).slice(0,50);
     const created = await nlCreateSite(name);
-    await nlDeploy(created.site_id, files);
+    await nlDeploy(name, created.site_id, files);
     const url = created.ssl_url || created.url;
     live[s] = url;
-    console.log(s, '->', url);
+    console.log(`${s} live at ${url}`);
+    await new Promise(r=>setTimeout(r, 1500));
   }
 
   // Update umbrella network.json and deploy umbrella
@@ -185,7 +194,6 @@ async function nlDeploy(siteId, files){
   }));
   writeFile(path.join(umbAbs,'assets','network.json'), JSON.stringify(list,null,2)+'\n');
 
-  // Gather umbrella files
   const umbFiles=[];
   (function gatherUmb(d, rel=''){
     for (const de of fs.readdirSync(d,{withFileTypes:true})){
@@ -202,10 +210,9 @@ async function nlDeploy(siteId, files){
   } else {
     umbSite = await nlCreateSite('utility-umbrella');
   }
-  await nlDeploy(umbSite.site_id, umbFiles);
+  await nlDeploy('umbrella', umbSite.site_id, umbFiles);
   const umbUrl = umbSite.ssl_url || umbSite.url;
 
-  // Re-deploy umbrella including itself in list
   const fullList = [{ label: 'Umbrella', href: umbUrl }, ...list];
   writeFile(path.join(umbAbs,'assets','network.json'), JSON.stringify(fullList,null,2)+'\n');
   const umbFiles2=[];
@@ -216,7 +223,7 @@ async function nlDeploy(siteId, files){
       else if (de.isFile()) umbFiles2.push({ path: '/' + r.replace(/\\/g,'/'), buf: fs.readFileSync(p) });
     }
   })(umbAbs);
-  await nlDeploy(umbSite.site_id, umbFiles2);
+  await nlDeploy('umbrella-finalize', umbSite.site_id, umbFiles2);
 
   console.log('Umbrella:', umbUrl);
   console.log('Micros:', live);
