@@ -1,4 +1,5 @@
 name: Deploy Utility Network (umbrella + 15 micro-sites)
+
 on:
   workflow_dispatch:
   push:
@@ -6,34 +7,58 @@ on:
     paths:
       - "sites/**"
       - "scripts/**"
+
 permissions:
   contents: write
+
 env:
   GA_ID: G-083MSQKPFX
   ADS_PUB: ca-pub-6175161566333696
-  UMBRELLA_SITE_NAME: golden-elf-b1aa95
+  UMBRELLA_NAME: golden-elf-b1aa95
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: "20" }
-      - name: Install Netlify CLI + jq
-        run: |
-          npm i -g netlify-cli
-          sudo apt-get update && sudo apt-get install -y jq
+
+      # Normalize CRLF just in case & make scripts executable
       - name: Normalize line endings (avoid CRLF bash errors)
         run: |
-          find scripts -type f -name "*.sh" -print0 | xargs -0 sed -i "s/\r$//"
+          sudo apt-get update -y
+          sudo apt-get install -y dos2unix jq
+          find scripts -type f -name "*.sh" -print0 | xargs -0 -I {} dos2unix "{}" || true
+          chmod +x scripts/*.sh || true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Netlify CLI
+        run: npm i -g netlify-cli
+
+      - name: Quick env diagnostics (masked)
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        run: |
+          echo "Has NETLIFY_AUTH_TOKEN? $(test -n \"${NETLIFY_AUTH_TOKEN:-}\" && echo yes || echo no)"
+          echo "Has NETLIFY_TOKEN?      $(test -n \"${NETLIFY_TOKEN:-}\" && echo yes || echo no)"
+          ls -la scripts
+
       - name: Deploy all sites
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
-        run: bash scripts/deploy-all-with-netlify-cli.sh
-      - name: Commit network.json updates (if any)
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          GA_ID: ${{ env.GA_ID }}
+          ADS_PUB: ${{ env.ADS_PUB }}
+          UMBRELLA_NAME: ${{ env.UMBRELLA_NAME }}
+        run: bash -x scripts/deploy-all-with-netlify-cli.sh
+
+      - name: Commit & push network.json updates (if any)
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "chore: update network.json with live URLs" || echo "no changes"
-          git push || true
+          git commit -m "chore: update network.json after deploy" || true
+          git push
