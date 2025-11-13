@@ -1,0 +1,40 @@
+name: Deploy to Vercel (umbrella + 15 sites)
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "sites/**"
+      - ".github/workflows/vercel-mono.yml"
+      - "scripts/vercel-deploy.sh"
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TEAM: ${{ vars.VERCEL_TEAM }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Deploy all projects to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM: ${{ env.VERCEL_TEAM }}
+        run: |
+          bash scripts/vercel-deploy.sh
+
+      - name: Commit updated network.json (if changed)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sites/utility-network-landing/assets/network.json || true
+          git commit -m "chore: refresh umbrella network links" || echo "no changes"
+          git push || true
