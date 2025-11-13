@@ -1,0 +1,21 @@
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      # Make them visible to every step in this job
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TEAM:  ${{ vars.VERCEL_TEAM }} # or ${{ secrets.VERCEL_TEAM }} if you made it a secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Vercel CLI
+        run: npm i -g vercel
+      - name: Sanity check env (no secrets printed)
+        run: |
+          test -n "$VERCEL_TOKEN" || { echo "VERCEL_TOKEN missing"; exit 1; }
+          test -n "$VERCEL_TEAM"  || { echo "VERCEL_TEAM missing";  exit 1; }
+          echo "Team: $VERCEL_TEAM"
+      - name: Deploy all projects to Vercel
+        run: bash scripts/vercel-deploy.sh
