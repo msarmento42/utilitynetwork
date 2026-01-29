@@ -1,0 +1,38 @@
+TASK: Patch the scaffold to use my real GA4 + AdSense values (no placeholders).
+
+1) Find the config file you created for site settings (likely one of):
+   - site-config.ts / src/config/site-config.ts / config/site.ts / lib/site-config.ts
+   Search the repo for keys like: gaTrackingId, ga4, adsense, publisherId, adClient, adExclusionPaths.
+
+2) Update the config defaults to EXACTLY these values (hardcode as defaults):
+   - ga4MeasurementIdDefault: "G-083MSQKPFX"
+   - adsensePublisherIdDefault: "pub-6175161566333696"
+   - adsenseClientIdDefault (data-ad-client): "ca-pub-6175161566333696"
+   - adsTxtLineDefault: "google.com, pub-6175161566333696, DIRECT, f08c47fec0942fa0"
+
+   If your config uses different field names (e.g., gaTrackingId, adsenseClientId), map appropriately.
+   Keep/retain adExclusionPaths as-is.
+
+3) Ensure env overrides still work (preferred):
+   - NEXT_PUBLIC_GA4_ID overrides ga4MeasurementIdDefault
+   - NEXT_PUBLIC_ADSENSE_PUB_ID overrides adsensePublisherIdDefault
+   - NEXT_PUBLIC_ADSENSE_CLIENT_ID overrides adsenseClientIdDefault (optional but supported)
+
+   Implementation requirement:
+   - The runtime value used by the GA tag and AdSense script must be read from env first, then fall back to config defaults.
+   - Do NOT leave placeholders anywhere in code after this patch.
+
+4) Update /public/ads.txt so it contains EXACTLY this line (and nothing else for now):
+   google.com, pub-6175161566333696, DIRECT, f08c47fec0942fa0
+
+5) Update /.env.example (create it if missing) with:
+   NEXT_PUBLIC_GA4_ID=G-083MSQKPFX
+   NEXT_PUBLIC_ADSENSE_PUB_ID=pub-6175161566333696
+   NEXT_PUBLIC_ADSENSE_CLIENT_ID=ca-pub-6175161566333696
+
+6) Verify references:
+   - GA4 injection uses the final resolved GA ID (env→config default). (Next supports GA4 via gtag.js / GoogleAnalytics component.) :contentReference[oaicite:1]{index=1}
+   - AdSense Auto Ads script uses data-ad-client="ca-pub-6175161566333696" from resolved config/env. :contentReference[oaicite:2]{index=2}
+   - ads.txt is served at /ads.txt with the line above. :contentReference[oaicite:3]{index=3}
+
+Deliverable: commit-ready changes only (config + ads.txt + env example + any small wiring changes needed). Do not generate any new prose/site content.

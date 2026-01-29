@@ -1,0 +1,72 @@
+**Project**: Everyday AI Workflows – Next.js + TypeScript Static Site (15 subsite scaffold with Markdown content)
+
+**Instructions**: You are a coding assistant. Set up a new Next.js 13+ project (TypeScript, using the App Router) with the following requirements. Focus on project structure, configuration, and placeholders – *do not write actual site content*, just the framework to support it. Use Markdown/MDX for content files in a `/content` directory and ensure GA4 + AdSense integration and no-ads logic as described.
+
+1. **Initialize Next.js Project**: Create a Next.js project with TypeScript. Organize routes using the App Router (`app/` directory). Include a `README.md` summarizing how to run the project.
+
+2. **Content Structure**: 
+    - In the project root (or `app` folder if preferred), add a `content/` directory with subfolders for each section:
+      - `content/pages/` for static pages like About, Contact, Privacy, Terms, Cookie Notice, AI Content Disclosure.
+      - Fifteen subfolders for subsites: `business, jobs, creators, productivity, marketing, travel, meals, study, social, home, entertainment, parenting, shopping, coding, lifestyle`. Inside each, create one sample Markdown file (e.g., `hello.md`) with a short placeholder (e.g., “# Hello from Business” in business/hello.md). Include YAML front matter in each (e.g., `title`, `date`, `noAds` flag).
+    - Provide a TypeScript interface for front matter (e.g., an `ArticleMeta` type with fields like title, date, noAds).
+    - Use either a library or custom utility to load these MDX files. *Suggestion*: set up `@next/mdx` to import MDX as React components, or use a utility to read markdown content in `getStaticProps` (if using Pages router). In App router, you might use `fs` in a custom script to generate static data.
+    - **No actual content needed** beyond simple placeholders, but ensure the pipeline is in place to parse and display content.
+
+3. **Routing and Pages**:
+    - Implement dynamic routes for subsites and posts. For example:
+      - `/[subsite]/[slug]/` should render an article page. Use a dynamic route segment that catches the subsite and slug, then finds the corresponding markdown file from `/content`.
+      - `/[subsite]/` index route to list all posts in that subsite (e.g., list titles linking to each slug). You can generate this by reading all files in that folder.
+    - Implement static pages from `content/pages`: e.g., an `/about` route that loads about.md content, etc.
+    - In each page component, parse the MDX/Markdown content to HTML. You can use Next.js’s MDX integration so that you can do `import AboutContent from 'content/pages/about.md'` and use it as a component, or use a library like `gray-matter` + `marked` to convert content.
+    - Ensure that each page component receives front matter meta (for setting <title> tags, etc.). For now, set a `<title>` using meta.title from front matter or a placeholder.
+
+4. **Layout and Navigation**:
+    - Create a global layout (`app/layout.tsx`) that includes a header and footer on all pages.
+    - **Header**: Include the site name (as an `<a>` linking to home) and a basic nav menu. The nav can have a few example links (Tier 1 sections like Business, Jobs, Creators, etc., plus a “More” dropdown placeholder). The exact menu items can be hardcoded for now or generated from a config. Also include an `<Link>` to “About” in the header or footer.
+    - **Footer**: List out all subsites (all 15 as text links) and the policy pages (About, Contact, Privacy, etc.). Keep styling minimal (just to verify links work).
+    - Ensure the layout imports a CSS file or uses Tailwind (if configured) for basic styling. Keep it simple: maybe a top nav bar and a footer with small text.
+
+5. **Site Config**:
+    - Create a config (e.g., `site-config.ts`) exporting an object with:
+      - `gaTrackingId: 'G-XXXXXXXXXX'` (put a dummy ID).
+      - `adsenseClientId: 'ca-pub-XXXXXXXXXXXXXXXX'` (dummy AdSense publisher ID).
+      - `adExclusionPaths: string[]` (list paths like "/privacy-policy", "/terms", etc., where no ads should show).
+      - `subsites: Array` of { slug, name, tier } for all 15 sections.
+    - Use this config in the layout to generate nav links (you can filter Tier 1 vs others).
+    - Also use it for inserting scripts (next step).
+
+6. **GA4 Integration**:
+    - Add the GA4 script globally. In `layout.tsx`, include the `<script>` tag or use Next’s `GoogleAnalytics` component.
+      - If using script, use Next’s `<Script>` component with `strategy="afterInteractive"` to load GA after page load. The script should use `NEXT_PUBLIC_GA_ID` from env or the config’s gaTrackingId. (Embed a small inline script to init gtag as per GA4 docs).
+    - Additionally, implement pageview tracking on route changes if needed (in App router, might not need since each page load triggers a new page).
+    - Ensure that if `gaTrackingId` is not set (empty string), the script is not inserted (so we don’t break build with dummy).
+    - Place a TODO or comment that consent management could be added here.
+
+7. **AdSense Integration**:
+    - Insert the AdSense Auto Ads script in the `<Head>` of layout. Use the `adsenseClientId` from config for `data-ad-client`. Mark the script as `async` and `crossOrigin="anonymous"`.
+    - Create a React component `AdSenseSlot.tsx` in components for manual ad units. It should render an `<ins className="adsbygoogle" ...>` with `data-ad-client` and a `data-ad-slot` prop. On mount (useEffect), call `window.adsbygoogle.push({})`:contentReference[oaicite:55]{index=55}. This component will be used for any manual ad placement.
+    - For now, use one sample ad slot in content pages: e.g., in the post layout, after the content, render `<AdSenseSlot adSlot="1234567890" />` (with a dummy slot ID). This is just to demonstrate usage.
+    - Implement no-ads logic: Check the page’s front matter or route against `adExclusionPaths`. If `noAds` is true in front matter *or* the current path is in the exclusion list, then do not render the AdSense script and do not render any `<AdSenseSlot>` components on that page.
+      - One way: In layout or in a custom `_app`, use a context or simple function to determine `showAds = !adExclusionPaths.includes(path) && frontMatter.noAds !== true`.
+      - Alternatively, handle at build time: e.g., do not inject ad script tag on those specific pages (you might have to differentiate layouts for certain routes if using App router). Simpler: always include the script, but conditionally render ad slots.
+    - Add comments/TODO noting that additional meta tags can be added to disable Auto Ads on excluded pages if needed.
+
+8. **ads.txt**:
+    - Place a static `ads.txt` in the `public/` folder with the sample line:
+      ```
+      google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+      ```
+      (Replace X with the dummy publisher ID from config).
+    - Confirm that running the dev/build, the file is served (e.g., mention that `/_site_/ads.txt` should be reachable).
+
+9. **Testing & Placeholder Content**:
+    - For demonstration, have the homepage list links to each Tier 1 subsite and maybe one sample post from each (you can hardcode one link per subsite for now). This is just to verify navigation.
+    - Each Markdown content page should display its content. E.g., visiting `/business/hello` should show the markdown “Hello from Business” etc., and the layout around it (header/footer).
+    - The static pages like About should show their MD content as well.
+    - Include a couple of console.log or comments indicating where GA or AdSense would initialize (for clarity when reviewing output).
+
+10. **Quality**: Ensure TypeScript passes (define types for content meta, perhaps make the content loader generic). Avoid any build errors. The focus is on scaffolding, so it’s okay if some data (like list of posts) is hardcoded or simplified, as long as the structure to support everything is present.
+
+**Goals**: The output should be the full Next.js project structure with the key files created (pages, components, content markdown, config). Do not include large dummy text for content – just minimal placeholders. Ensure the GA and AdSense integration points are clearly implemented with dummy IDs. Comment your code for clarity where needed (especially for the noAds logic and content loading).
+
+When done, provide the code for all created files (as much as feasible) in a single response, preserving directory structure in markdown format (you can use code fences with file paths as headings for clarity). Only include relevant files to keep it concise (e.g., no auto-generated lockfiles).**
