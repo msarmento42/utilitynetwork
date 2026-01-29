@@ -1,1 +1,77 @@
-[]
+[
+  {
+    "slug": "cleaning-laundry-lab",
+    "name": "Cleaning & Laundry Lab",
+    "url": "/cleaning-laundry-lab/index.html"
+  },
+  {
+    "slug": "cooking-core",
+    "name": "Cooking Core",
+    "url": "/cooking-core/index.html"
+  },
+  {
+    "slug": "holiday-event-minis",
+    "name": "Holiday & Event Minis",
+    "url": "/holiday-event-minis/index.html"
+  },
+  {
+    "slug": "home-energy-cost",
+    "name": "Home Energy Cost",
+    "url": "/home-energy-cost/index.html"
+  },
+  {
+    "slug": "home-office-media-setup",
+    "name": "Home Office & Media Setup",
+    "url": "/home-office-media-setup/index.html"
+  },
+  {
+    "slug": "home-project-calculators",
+    "name": "Home Project Calculators",
+    "url": "/home-project-calculators/index.html"
+  },
+  {
+    "slug": "moving-storage-planner",
+    "name": "Moving & Storage Planner",
+    "url": "/moving-storage-planner/index.html"
+  },
+  {
+    "slug": "party-planner-pack",
+    "name": "Party Planner Pack",
+    "url": "/party-planner-pack/index.html"
+  },
+  {
+    "slug": "shopping-saver-tools",
+    "name": "Shopping Saver Tools",
+    "url": "/shopping-saver-tools/index.html"
+  },
+  {
+    "slug": "subscription-tamer",
+    "name": "Subscription Tamer",
+    "url": "/subscription-tamer/index.html"
+  },
+  {
+    "slug": "template-pdf-generators",
+    "name": "Template & PDF Generators",
+    "url": "/template-pdf-generators/index.html"
+  },
+  {
+    "slug": "time-scheduling-tools",
+    "name": "Time & Scheduling Tools",
+    "url": "/time-scheduling-tools/index.html"
+  },
+  {
+    "slug": "travel-cost-minis",
+    "name": "Travel Cost Minis",
+    "url": "/travel-cost-minis/index.html"
+  },
+  {
+    "slug": "work-money-utilities",
+    "name": "Work & Money Utilities",
+    "url": "/work-money-utilities/index.html"
+  },
+  {
+    "slug": "yard-garden-planner",
+    "name": "Yard & Garden Planner",
+    "url": "/yard-garden-planner/index.html"
+  }
+]
