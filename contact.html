@@ -15,7 +15,7 @@
     <p>Send a message to <strong>contact@everydayaiworkflows.com</strong>.</p>
 
     <form id="contactForm" method="post" action="/api/contact" style="display:grid;gap:10px;max-width:520px;">
-      <label>Email<input name="email" type="email" autocomplete="email" /></label>
+      <label>Email<input name="email" type="email" required autocomplete="email" /></label>
       <label>Message<textarea name="message" required rows="6"></textarea></label>
       <div class="cf-turnstile" data-sitekey="REPLACE_WITH_TURNSTILE_SITEKEY"></div>
       <button type="submit">Send</button>
@@ -39,3 +39,37 @@
   </script>
 </body>
 </html>
+
+<script>
+const f = document.getElementById('contactForm');
+function mailtoFallback(fd){
+  const name = (fd.get('name')||'').toString();
+  const email = (fd.get('email')||'').toString();
+  const message = (fd.get('message')||'').toString();
+  const subject = encodeURIComponent('Contact form submission');
+  const body = encodeURIComponent(`Name: ${name}
+Email: ${email}
+
+${message}`);
+  window.location.href = `mailto:contact@everydayaiworkflows.com?subject=${subject}&body=${body}`;
+}
+if (f) {
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const status = document.getElementById('contactStatus');
+    status.textContent = 'Sending…';
+    const fd = new FormData(f);
+    try {
+      const r = await fetch('/api/contact', { method: 'POST', body: fd });
+      const j = await r.json().catch(() => ({ ok: false }));
+      if (r.ok && j.ok) {
+        status.textContent = 'Sent. If you do not hear back, email contact@everydayaiworkflows.com';
+        f.reset();
+        return;
+      }
+    } catch (_) {}
+    status.textContent = 'Could not submit here — opening your email app instead.';
+    mailtoFallback(fd);
+  });
+}
+</script>
