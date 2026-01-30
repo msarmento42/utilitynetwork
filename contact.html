@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact — Everyday AI Workflows</title>
+  <meta name="description" content="Contact Everyday AI Workflows." />
+  <link rel="canonical" href="https://everydayaiworkflows.com/contact.html" />
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>body{font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto;margin:0;background:#fafafa}main{max-width:720px;margin:24px auto;padding:0 16px}input,textarea{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}button{padding:10px 14px;border-radius:10px;border:0;background:#2563eb;color:#fff;font-weight:700}</style>
+</head>
+<body>
+  <main>
+    <h1>Contact</h1>
+    <p>Send a message to <strong>contact@everydayaiworkflows.com</strong>.</p>
+
+    <form id="contactForm" method="post" action="/api/contact" style="display:grid;gap:10px;max-width:520px;">
+      <label>Email<input name="email" type="email" autocomplete="email" /></label>
+      <label>Message<textarea name="message" required rows="6"></textarea></label>
+      <div class="cf-turnstile" data-sitekey="REPLACE_WITH_TURNSTILE_SITEKEY"></div>
+      <button type="submit">Send</button>
+      <p id="contactStatus" style="color:#6b7280;font-size:14px;"></p>
+    </form>
+
+    <p><a href="/sites/utility-network-landing/index.html">← Back</a></p>
+  </main>
+
+  <script>
+  const f=document.getElementById('contactForm');
+  f?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const s=document.getElementById('contactStatus');
+    s.textContent='Sending…';
+    const r=await fetch('/api/contact',{method:'POST',body:new FormData(f)});
+    const j=await r.json().catch(()=>({ok:false}));
+    s.textContent=(r.ok && j.ok)?'Sent. If you do not hear back, email contact@everydayaiworkflows.com':'Failed. Please email contact@everydayaiworkflows.com';
+    if(r.ok && j.ok) f.reset();
+  });
+  </script>
+</body>
+</html>
