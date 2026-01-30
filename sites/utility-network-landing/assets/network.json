@@ -1,5 +1,10 @@
 [
   {
+    "slug": "ai-email-triage-workflow",
+    "name": "AI Email Triage Workflow",
+    "url": "/ai-email-triage-workflow/index.html"
+  },
+  {
     "slug": "ai-meeting-notes-workflow",
     "name": "AI Meeting Notes Workflow",
     "url": "/ai-meeting-notes-workflow/index.html"
